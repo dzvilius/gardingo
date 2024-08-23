@@ -1,6 +1,6 @@
 {
   "name": "gardingo",
-  "description": "Bingo game with Fruits, Vegetables, Berries and Nuts built with Pixi.JS",
+  "description": "Bingo game featuring Fruits, Vegetables, Berries, and Nuts.",
   "version": "1.0.0",
   "author": "Vilius Dzemyda <dev@viliusdzemyda.com>",
   "license": "MIT",
