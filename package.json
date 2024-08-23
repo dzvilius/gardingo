@@ -4,6 +4,24 @@
   "version": "1.0.0",
   "author": "Vilius Dzemyda <dev@viliusdzemyda.com>",
   "license": "MIT",
-  "scripts": {},
-  "devDependencies": {}
+  "scripts": {
+    "dev": "webpack serve --config webpack.config.js --mode development --open",
+    "build": "webpack --config webpack.config.js --mode production",
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "cors": "^2.8.5",
+    "css-loader": "^7.1.2",
+    "express": "^4.19.2",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.6.0",
+    "mini-css-extract-plugin": "^2.9.0",
+    "pixi.js": "^8.2.5",
+    "sass": "^1.77.8",
+    "sass-loader": "^14.2.1",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
 }
