@@ -6,6 +6,6 @@ Bingo game with Fruits, Vegetables, Berries and Nuts.
 
 Please read the [Project Brief](ux/Project_Brief.md) document to learn more about the client and project requirements.
 
-[Live Preview](https://invis.io/Y8VV7RQPVUF) (Coming soon...)
+[Live Preview](https://x) (Coming soon...)
 
 ![Game Screens](concept/Screens.png)
