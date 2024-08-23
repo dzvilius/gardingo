@@ -1,3 +1,14 @@
+// Set your brand colors
+$brand: yellow;
+
+// Path to Bulma's sass folder
+@use "bulma/sass" with (
+  $family-primary: '"Roboto", sans-serif',
+  $primary: $brand,
+);
+
+
+
 body {
   font-family: 'Roboto', sans-serif;
   background: #222;

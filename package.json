@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "webpack serve --config webpack.config.js --mode development --open",
     "build": "webpack --config webpack.config.js --mode production",
-    "start": "node server.js"
+    "build-bulma": "sass --load-path=node_modules my-bulma-project.scss my-bulma-project.css",
+    "watch-bulma": "npm run build-bulma -- --watch",
+    "start": "npm-run-all --parallel start-server watch-bulma",
+    "start-server": "node server.js"
   },
   "devDependencies": {
     "cors": "^2.8.5",
@@ -23,5 +26,8 @@
     "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.0.4"
+  },
+  "dependencies": {
+    "bulma": "^1.0.2"
   }
 }
