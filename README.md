@@ -12,7 +12,7 @@ Please read the [Project Brief](concept/Project_Brief.md) document to learn more
 
 #### Table of Contents
 
-...
+Coming soon...
 
 ## Strategy
 
