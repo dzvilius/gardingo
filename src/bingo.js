@@ -72,6 +72,10 @@ export const setupBingo = async () => {
   // Add canvas to the container
   gameContainer.appendChild(bingoGameApp.canvas);
 
+  // Load sound assets
+  const clickSound = new Audio(require('./assets/sounds/click.mp3'));
+  const winSound = new Audio(require('./assets/sounds/win.mp3'));
+
   // Load the star image asset
   const starTexture = await Assets.load(require('./assets/img/star.svg'));
 
@@ -85,6 +89,7 @@ export const setupBingo = async () => {
   let drawnImages = [];
   let drawCount = 0;
   let tickets = loadTickets();
+  let hasWon = false;
 
   // DOM elements
   const gameImage = document.getElementById('game-image');
@@ -176,6 +181,7 @@ export const setupBingo = async () => {
 
   // Mark a matching item on the bingo ticket
   const markTicket = (index) => {
+    clickSound.play();
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
@@ -213,34 +219,44 @@ export const setupBingo = async () => {
       if (line.every((index) => markedIndices.includes(index))) {
         wonLines++;
         line.forEach((index) => winningIndices.add(index));
-        handleWin(wonLines);
       }
     });
 
     highlightWinningLines(ticketContainer, winningIndices);
+    handleWin(wonLines, markedIndices);
+  };
+
+  // Handle winning lines
+  const handleWin = (wonLines, markedIndices) => {
+    let winMessage = '';
+
+    if (wonLines >= 1 && !hasWon) {
+      document
+        .getElementById('one-line')
+        .classList.add('Leaderboard__item--won');
+      winMessage = 'Congratulations! You Won $5 Credit!';
+    }
+
+    if (wonLines >= 2 && !hasWon) {
+      document
+        .getElementById('two-lines')
+        .classList.add('Leaderboard__item--won');
+      winMessage = 'Congratulations! You Won $15 Credit!';
+    }
 
     if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31) {
       handleJackpot();
     } else if (wonLines === 2 && markedIndices.length === 25) {
       handleFullHouse();
+    }
+
+    if (winMessage) {
+      promoText.innerText = winMessage;
+      winSound.play();
+      hasWon = true;
     } else if (drawCount === 41 && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
       resetGame();
-    }
-  };
-
-  // Handle winning lines
-  const handleWin = (wonLines) => {
-    if (wonLines === 1) {
-      document
-        .getElementById('one-line')
-        .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won $5 Credit!';
-    } else if (wonLines === 2) {
-      document
-        .getElementById('two-lines')
-        .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won $15 Credit!';
     }
   };
 
@@ -257,17 +273,29 @@ export const setupBingo = async () => {
 
   // Handle jackpot
   const handleJackpot = () => {
-    document.getElementById('jackpot').classList.add('Leaderboard__item--won');
-    promoText.innerText = 'Congratulations! Jackpot!';
+    if (!hasWon) {
+      // Check if win sound has already been played
+      document
+        .getElementById('jackpot')
+        .classList.add('Leaderboard__item--won');
+      promoText.innerText = 'Congratulations! Jackpot!';
+      winSound.play();
+      hasWon = true;
+    }
     resetGame();
   };
 
   // Handle full house
   const handleFullHouse = () => {
-    document
-      .getElementById('full-house')
-      .classList.add('Leaderboard__item--won');
-    promoText.innerText = 'Congratulations! You Won $25 Credit!';
+    if (!hasWon) {
+      // Check if win sound has already been played
+      document
+        .getElementById('full-house')
+        .classList.add('Leaderboard__item--won');
+      promoText.innerText = 'Congratulations! You Won $25 Credit!';
+      winSound.play();
+      hasWon = true;
+    }
     resetGame();
   };
 
@@ -280,6 +308,7 @@ export const setupBingo = async () => {
     drawCount = 0;
     saveDraws();
     button.disabled = true;
+    hasWon = false;
 
     setTimeout(() => {
       startResetTimer();
@@ -302,6 +331,7 @@ export const setupBingo = async () => {
       sprite.texture = index === 12 ? starTexture : Texture.WHITE;
       sprite.tint = index !== 12 ? 0xcccccc : 0xffffff;
     });
+    hasWon = false; // Reset the win flag
   };
 
   // Button click event
