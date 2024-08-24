@@ -23,7 +23,7 @@ body {}
 
 .GameStats__container {
   background: #fff;
-  max-width: 420px;
+  max-width: 410px;
   padding: 10px;
   margin: auto;
   display: flex;
@@ -67,8 +67,8 @@ body {}
 
 .GameCard__container {
   background: #fff;
-  max-width: 420px;
-  padding: 10px;
+  max-width: 410px;
+  padding: 5px;
   margin: auto;
 
   canvas {
@@ -81,7 +81,7 @@ body {}
 }
 
 .GameFooter__container {
-  max-width: 420px;
+  max-width: 410px;
   padding: 10px;
   margin: auto;
 }

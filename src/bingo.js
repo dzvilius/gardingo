@@ -64,7 +64,7 @@ export const setupBingo = async () => {
 
   // Init and configure application
   await bingoGameApp.init({
-    background: '#140D3D',
+    background: '#fff',
     height: 400,
     width: 400,
     // resizeTo: gameContainer,
@@ -131,7 +131,8 @@ export const setupBingo = async () => {
   // Function to mark a matching item on the bingo ticket
   function markTicket(index) {
     // Logic to place a star on the matched item
-    const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
+    const ticketContainer =
+      bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
   }
@@ -174,8 +175,13 @@ export const setupBingo = async () => {
           : gardenTextures[GARDEN_ITEMS.indexOf(item)];
       const sprite = new Sprite(texture);
 
-      sprite.x = col * 100;
-      sprite.y = row * 100;
+      // Set the sprite's size to 70x70
+      sprite.width = 70;
+      sprite.height = 70;
+
+      // Calculate the position with a 5px margin on each side
+      sprite.x = col * 80 + 5; // (70px + 10px gap) centered
+      sprite.y = row * 80 + 5; // (70px + 10px gap) centered
 
       ticketContainer.addChild(sprite);
     });
