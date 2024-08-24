@@ -90,6 +90,9 @@ export const setupBingo = async () => {
   let drawCount = 0;
   let tickets = loadTickets();
   let hasWon = false;
+  let oneLineWon = false;
+  let twoLinesWon = false;
+  let fullHouseWon = false;
 
   // DOM elements
   const gameImage = document.getElementById('game-image');
@@ -170,7 +173,7 @@ export const setupBingo = async () => {
 
     checkWinConditions();
 
-    if (drawCount >= 41) {
+    if (drawCount >= 51) {
       alert('41 draws completed. Start a new game by dealing a new ticket.');
       resetTicket();
       button.innerText = 'Deal';
@@ -231,36 +234,40 @@ export const setupBingo = async () => {
     let winMessage = '';
 
     // Check for one line win
-    if (wonLines >= 1 && !hasWon) {
+    if (wonLines >= 1 && !oneLineWon) {
+      console.log('One Line condition met. Playing win sound.');
       document
         .getElementById('one-line')
         .classList.add('Leaderboard__item--won');
       winMessage = 'Congratulations! You Won $5 Credit!';
       promoText.innerText = winMessage;
       winSound.play();
+      oneLineWon = true;
       hasWon = true;
     }
 
     // Check for two lines win
-    if (wonLines >= 2 && hasWon) {
+    if (wonLines >= 2 && !twoLinesWon) {
+      console.log('Two Lines condition met. Playing win sound.');
       document
         .getElementById('two-lines')
         .classList.add('Leaderboard__item--won');
       winMessage = 'Congratulations! You Won $15 Credit!';
       promoText.innerText = winMessage;
       winSound.play();
+      twoLinesWon = true;
       hasWon = true;
     }
 
     // Handle jackpot or full house
-    if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31) {
+    if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31 && !fullHouseWon) {
       handleJackpot();
-    } else if (wonLines === 2 && markedIndices.length === 25) {
+    } else if (wonLines === 2 && markedIndices.length === 25 && !fullHouseWon) {
       handleFullHouse();
     }
 
     // No winning lines, check if the game should end
-    if (drawCount === 41 && tickets === 0 && wonLines < 1) {
+    if (drawCount === 51 && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
       resetGame();
     }
@@ -279,13 +286,14 @@ export const setupBingo = async () => {
 
   // Handle jackpot
   const handleJackpot = () => {
-    if (!hasWon) {
-      // Check if win sound has already been played
+    if (!fullHouseWon) {
+      console.log('Jackpot condition met. Playing win sound.');
       document
         .getElementById('jackpot')
         .classList.add('Leaderboard__item--won');
       promoText.innerText = 'Congratulations! You Won $100 Credit!';
       winSound.play();
+      fullHouseWon = true;
       hasWon = true;
     }
     resetGame();
@@ -293,13 +301,14 @@ export const setupBingo = async () => {
 
   // Handle full house
   const handleFullHouse = () => {
-    if (!hasWon) {
-      // Check if win sound has already been played
+    if (!fullHouseWon) {
+      console.log('Full House condition met. Playing win sound.');
       document
         .getElementById('full-house')
         .classList.add('Leaderboard__item--won');
       promoText.innerText = 'Congratulations! You Won $25 Credit!';
       winSound.play();
+      fullHouseWon = true;
       hasWon = true;
     }
     resetGame();
@@ -307,19 +316,20 @@ export const setupBingo = async () => {
 
   // Reset game after win or loss
   const resetGame = () => {
-    resetLeaderboard();
-    resetTicket();
-    tickets = 0;
-    saveTickets(0);
-    drawCount = 0;
-    saveDraws();
-    button.disabled = true;
-    hasWon = false;
-
     setTimeout(() => {
-      startResetTimer();
-      location.reload(); // Force page refresh to ensure all UI elements are reset
-    }, 500); // Short delay before refreshing
+      resetLeaderboard();
+      resetTicket();
+      tickets = 0;
+      saveTickets(0);
+      drawCount = 0;
+      saveDraws();
+      button.disabled = true;
+      oneLineWon = false;
+      twoLinesWon = false;
+      fullHouseWon = false;
+      hasWon = false;
+      location.reload();
+    }, 500);
   };
 
   // Function to reset the leaderboard
@@ -359,7 +369,7 @@ export const setupBingo = async () => {
         button.innerText = 'Wait 24h';
       }
     } else if (button.innerText === 'Play') {
-      if (drawCount < 41) {
+      if (drawCount < 51) {
         drawImage();
       } else {
         alert('Maximum 41 draws reached. Start a new game.');
