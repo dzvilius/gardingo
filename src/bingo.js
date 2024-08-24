@@ -95,12 +95,12 @@ export const setupBingo = async () => {
 
   ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
   loadDraws();
-  resetTicketsTimer();
+  startResetTimer();
 
   // Create empty ticket grid
   const createEmptyTicketGrid = () => {
     const ticketContainer = new Container();
-    ticketContainer.name = 'ticketContainer';
+    ticketContainer.label = 'ticketContainer';
 
     for (let i = 0; i < 25; i++) {
       const texture = i === 12 ? starTexture : Texture.WHITE;
@@ -282,7 +282,7 @@ export const setupBingo = async () => {
     button.disabled = true;
 
     setTimeout(() => {
-      resetTicketsTimer();
+      startResetTimer();
       location.reload(); // Force page refresh to ensure all UI elements are reset
     }, 500); // Short delay before refreshing
   };
@@ -334,11 +334,22 @@ export const setupBingo = async () => {
 
   // Load tickets from local storage
   function loadTickets() {
+    const now = Date.now();
+    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
     let tickets = parseInt(localStorage.getItem('bingo-tickets'), 10);
-    if (isNaN(tickets) || tickets < 1) {
+
+    if (!lastReset || now - lastReset >= 86400000) {
+      // 24 hours have passed, reset tickets
+      tickets = 10;
+      localStorage.setItem('bingo-last-reset', now);
+      localStorage.setItem('bingo-tickets', tickets);
+    }
+
+    if (isNaN(tickets)) {
       tickets = 10;
       localStorage.setItem('bingo-tickets', tickets);
     }
+
     return tickets;
   }
 
@@ -361,16 +372,27 @@ export const setupBingo = async () => {
   }
 
   // Timer reset for daily tickets
-  function resetTicketsTimer() {
-    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
+  function startResetTimer() {
     const now = Date.now();
-    if (!lastReset || now - lastReset >= 86400000) {
-      localStorage.setItem('bingo-tickets', '10');
-      localStorage.setItem('bingo-last-reset', now);
-      tickets = 10;
-      ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
-      button.disabled = false;
-      button.innerText = 'Deal';
+    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
+
+    const timeLeft = lastReset
+      ? Math.max(0, 86400000 - (now - lastReset))
+      : 86400000;
+
+    if (timeLeft === 0) {
+      resetTickets();
+    } else {
+      setTimeout(resetTickets, timeLeft);
     }
+  }
+
+  function resetTickets() {
+    localStorage.setItem('bingo-tickets', '10');
+    localStorage.setItem('bingo-last-reset', Date.now());
+    tickets = 10;
+    ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
+    button.disabled = false;
+    button.innerText = 'Deal';
   }
 };
