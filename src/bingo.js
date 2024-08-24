@@ -141,7 +141,7 @@ export const setupBingo = async () => {
   // Create empty ticket grid
   const createEmptyTicketGrid = () => {
     const ticketContainer = new Container();
-    ticketContainer.name = 'ticketContainer';
+    ticketContainer.label = 'ticketContainer';
 
     for (let i = 0; i < 25; i++) {
       const row = Math.floor(i / 5);
@@ -216,6 +216,14 @@ export const setupBingo = async () => {
     }
 
     checkWinConditions();
+
+    // Check if 41 draws are complete
+    if (drawCount >= 41) {
+      alert('41 draws completed. Start a new game by dealing a new ticket.');
+      button.innerText = 'Deal';
+    }
+
+    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
   };
 
   // Mark a matching item on the bingo ticket
@@ -255,19 +263,19 @@ export const setupBingo = async () => {
       if (line.every((index) => markedIndices.includes(index))) {
         wonLines++;
         if (wonLines === 1) {
-          document.getElementById('one-line').classList.add('won');
+          document.getElementById('one-line').classList.add('Leaderboard__item--won');
         } else if (wonLines === 2) {
-          document.getElementById('two-lines').classList.add('won');
+          document.getElementById('two-lines').classList.add('Leaderboard__item--won');
         }
       }
     });
 
     if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31) {
-      document.getElementById('jackpot').classList.add('won');
+      document.getElementById('jackpot').classList.add('Leaderboard__item--won');
       promoText.innerText = 'Congratulations! You Won!';
       resetGame();
     } else if (wonLines === 2 && markedIndices.length === 25) {
-      document.getElementById('full-house').classList.add('won');
+      document.getElementById('full-house').classList.add('Leaderboard__item--won');
       promoText.innerText = 'Congratulations! You Won!';
       resetGame();
     } else if (drawCount === 41 && tickets === 0 && wonLines < 1) {
@@ -291,23 +299,26 @@ export const setupBingo = async () => {
 
   // Button click event
   button.addEventListener('click', () => {
-    if (tickets > 0) {
-      if (button.innerText === 'Deal') {
+    if (button.innerText === 'Deal') {
+      if (tickets > 0) {
         currentTicket = generateTicket();
         renderTicket(currentTicket);
+        drawCount = 0; // Reset draw count for new ticket
+        saveDraws();
+        saveTickets(--tickets);
         button.innerText = 'Play';
-      } else if (button.innerText === 'Play') {
-        if (drawCount < 41) {
-          drawImage();
-        } else {
-          alert('Maximum 41 draws reached. Start a new game.');
-        }
+        drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+      } else {
+        button.disabled = true;
+        button.innerText = 'Wait 24h';
       }
-      saveTickets(--tickets);
-    }
-    if (tickets === 0) {
-      button.disabled = true;
-      button.innerText = 'Wait 24h';
+    } else if (button.innerText === 'Play') {
+      if (drawCount < 41) {
+        drawImage();
+      } else {
+        alert('Maximum 41 draws reached. Start a new game.');
+        button.innerText = 'Deal';
+      }
     }
   });
 };

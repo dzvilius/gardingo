@@ -53,6 +53,11 @@ body {}
   border: 1px solid #333;
 }
 
+.Leaderboard__item--won {
+  border: 1px solid green;
+  background: rgba(green, 0.5);
+}
+
 .GamePromo {
   text-align: center;
   font-size: 16px;
