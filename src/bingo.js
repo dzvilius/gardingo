@@ -80,81 +80,35 @@ export const setupBingo = async () => {
     GARDEN_ITEMS.map((item) => Assets.load(require(`./assets/img/${item}.png`)))
   );
 
+  // Game state variables
   let currentTicket = [];
   let drawnImages = [];
   let drawCount = 0;
+  let tickets = loadTickets();
 
+  // DOM elements
   const gameImage = document.getElementById('game-image');
   const promoText = document.getElementById('game-promo');
   const ticketsDisplay = document.getElementById('game-tickets');
   const drawsDisplay = document.getElementById('game-draws');
   const button = document.querySelector('.GameFooter__action .button');
 
-  // Local storage management
-  const loadTickets = () => {
-    let tickets = parseInt(localStorage.getItem('bingo-tickets'), 10);
-    if (isNaN(tickets) || tickets < 1) {
-      tickets = 10;
-      localStorage.setItem('bingo-tickets', tickets);
-    }
-    return tickets;
-  };
-
-  let tickets = loadTickets();
   ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
-
-  const saveTickets = (newTickets) => {
-    localStorage.setItem('bingo-tickets', newTickets);
-    ticketsDisplay.innerText = `Your Tickets: ${newTickets}`;
-  };
-
-  const loadDraws = () => {
-    drawCount = parseInt(localStorage.getItem('bingo-draws'), 10) || 0;
-    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
-  };
-
-  const saveDraws = () => {
-    localStorage.setItem('bingo-draws', drawCount);
-    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
-  };
-
   loadDraws();
-
-  // Timer reset for daily tickets
-  const resetTicketsTimer = () => {
-    const lastReset = localStorage.getItem('bingo-last-reset');
-    const now = Date.now();
-    if (!lastReset || now - lastReset >= 86400000) {
-      // 24 hours
-      localStorage.setItem('bingo-tickets', '10');
-      localStorage.setItem('bingo-last-reset', now);
-      tickets = 10;
-      ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
-      button.disabled = false;
-      button.innerText = 'Deal';
-    }
-  };
-
   resetTicketsTimer();
 
   // Create empty ticket grid
   const createEmptyTicketGrid = () => {
     const ticketContainer = new Container();
-    ticketContainer.label = 'ticketContainer';
+    ticketContainer.name = 'ticketContainer';
 
     for (let i = 0; i < 25; i++) {
-      const row = Math.floor(i / 5);
-      const col = i % 5;
-
       const texture = i === 12 ? starTexture : Texture.WHITE;
-
       const sprite = new Sprite(texture);
-      sprite.width = 70;
-      sprite.height = 70;
-      sprite.x = col * 80 + 5;
-      sprite.y = row * 80 + 5;
+      sprite.width = sprite.height = 70;
+      sprite.x = (i % 5) * 80 + 5;
+      sprite.y = Math.floor(i / 5) * 80 + 5;
       sprite.tint = i !== 12 ? 0xcccccc : 0xffffff; // Grey color for empty spots
-
       ticketContainer.addChild(sprite);
     }
 
@@ -187,7 +141,6 @@ export const setupBingo = async () => {
         item === 'free-star'
           ? starTexture
           : gardenTextures[GARDEN_ITEMS.indexOf(item)];
-
       const sprite = ticketContainer.getChildAt(index);
       sprite.texture = texture;
     });
@@ -201,23 +154,20 @@ export const setupBingo = async () => {
     const remainingItems = GARDEN_ITEMS.filter(
       (item) => !drawnImages.includes(item)
     );
-    const randomIndex = Math.floor(Math.random() * remainingItems.length);
-    const drawnItem = remainingItems[randomIndex];
+    const drawnItem =
+      remainingItems[Math.floor(Math.random() * remainingItems.length)];
     drawnImages.push(drawnItem);
 
     gameImage.src = `./assets/img/${drawnItem}.png`;
 
     const ticketIndex = currentTicket.indexOf(drawnItem);
-    if (ticketIndex !== -1) {
-      markTicket(ticketIndex);
-    }
+    if (ticketIndex !== -1) markTicket(ticketIndex);
 
     checkWinConditions();
 
-    // Check if 41 draws are complete
     if (drawCount >= 41) {
       alert('41 draws completed. Start a new game by dealing a new ticket.');
-      resetTicket(); // Reset the ticket to the default state
+      resetTicket();
       button.innerText = 'Deal';
     }
 
@@ -237,7 +187,7 @@ export const setupBingo = async () => {
   const checkWinConditions = () => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
-    const markedIndices = ticketContainer.children
+    const markedIndices = Array.from(ticketContainer.children)
       .map((sprite, index) => (sprite.texture === starTexture ? index : -1))
       .filter((index) => index !== -1);
 
@@ -257,59 +207,74 @@ export const setupBingo = async () => {
     ];
 
     let wonLines = 0;
-    let winningIndices = new Set();
+    const winningIndices = new Set();
 
     lines.forEach((line) => {
       if (line.every((index) => markedIndices.includes(index))) {
         wonLines++;
-        line.forEach((index) => {
-          winningIndices.add(index);
-        });
-        if (wonLines === 1) {
-          document
-            .getElementById('one-line')
-            .classList.add('Leaderboard__item--won');
-          promoText.innerText = 'Congratulations! You Won $5 Credit!';
-        } else if (wonLines === 2) {
-          document
-            .getElementById('two-lines')
-            .classList.add('Leaderboard__item--won');
-          promoText.innerText = 'Congratulations! You Won $15 Credit!';
-        }
+        line.forEach((index) => winningIndices.add(index));
+        handleWin(wonLines);
       }
     });
 
-    // Highlight the winning lines
-    ticketContainer.children.forEach((sprite, index) => {
-      if (winningIndices.has(index)) {
-        sprite.tint = 0xff0000; // Highlight the winning line
-      } else if (sprite.texture === starTexture) {
-        sprite.tint = 0xffffff; // Reset tint for non-winning stars
-      }
-    });
+    highlightWinningLines(ticketContainer, winningIndices);
 
     if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31) {
-      document
-        .getElementById('jackpot')
-        .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! Jackpot!';
-      resetGame();
+      handleJackpot();
     } else if (wonLines === 2 && markedIndices.length === 25) {
-      document
-        .getElementById('full-house')
-        .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won $25 Credit!';
-      resetGame();
+      handleFullHouse();
     } else if (drawCount === 41 && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
       resetGame();
     }
   };
 
+  // Handle winning lines
+  const handleWin = (wonLines) => {
+    if (wonLines === 1) {
+      document
+        .getElementById('one-line')
+        .classList.add('Leaderboard__item--won');
+      promoText.innerText = 'Congratulations! You Won $5 Credit!';
+    } else if (wonLines === 2) {
+      document
+        .getElementById('two-lines')
+        .classList.add('Leaderboard__item--won');
+      promoText.innerText = 'Congratulations! You Won $15 Credit!';
+    }
+  };
+
+  // Highlight winning lines
+  const highlightWinningLines = (ticketContainer, winningIndices) => {
+    ticketContainer.children.forEach((sprite, index) => {
+      sprite.tint = winningIndices.has(index)
+        ? 0xff0000
+        : sprite.texture === starTexture
+        ? 0xffffff
+        : 0xcccccc;
+    });
+  };
+
+  // Handle jackpot
+  const handleJackpot = () => {
+    document.getElementById('jackpot').classList.add('Leaderboard__item--won');
+    promoText.innerText = 'Congratulations! Jackpot!';
+    resetGame();
+  };
+
+  // Handle full house
+  const handleFullHouse = () => {
+    document
+      .getElementById('full-house')
+      .classList.add('Leaderboard__item--won');
+    promoText.innerText = 'Congratulations! You Won $25 Credit!';
+    resetGame();
+  };
+
   // Reset game after win or loss
   const resetGame = () => {
-    resetLeaderboard(); // Clear previous win indicators
-    resetTicket(); // Reset the ticket grid
+    resetLeaderboard();
+    resetTicket();
     tickets = 0;
     saveTickets(0);
     drawCount = 0;
@@ -324,8 +289,7 @@ export const setupBingo = async () => {
 
   // Function to reset the leaderboard
   const resetLeaderboard = () => {
-    const leaderboardItems = document.querySelectorAll('.Leaderboard__item');
-    leaderboardItems.forEach((item) => {
+    document.querySelectorAll('.Leaderboard__item').forEach((item) => {
       item.classList.remove('Leaderboard__item--won');
     });
   };
@@ -344,11 +308,11 @@ export const setupBingo = async () => {
   button.addEventListener('click', () => {
     if (button.innerText === 'Deal') {
       if (tickets > 0) {
-        resetLeaderboard(); // Reset leaderboard before starting a new game
+        resetLeaderboard();
         currentTicket = generateTicket();
         renderTicket(currentTicket);
-        drawCount = 0; // Reset draw count for new ticket
-        drawnImages = []; // Reset drawn images for the new game
+        drawCount = 0;
+        drawnImages = [];
         saveDraws();
         saveTickets(--tickets);
         button.innerText = 'Play';
@@ -367,4 +331,46 @@ export const setupBingo = async () => {
       }
     }
   });
+
+  // Load tickets from local storage
+  function loadTickets() {
+    let tickets = parseInt(localStorage.getItem('bingo-tickets'), 10);
+    if (isNaN(tickets) || tickets < 1) {
+      tickets = 10;
+      localStorage.setItem('bingo-tickets', tickets);
+    }
+    return tickets;
+  }
+
+  // Save tickets to local storage
+  function saveTickets(newTickets) {
+    localStorage.setItem('bingo-tickets', newTickets);
+    ticketsDisplay.innerText = `Your Tickets: ${newTickets}`;
+  }
+
+  // Load draw count from local storage
+  function loadDraws() {
+    drawCount = parseInt(localStorage.getItem('bingo-draws'), 10) || 0;
+    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+  }
+
+  // Save draw count to local storage
+  function saveDraws() {
+    localStorage.setItem('bingo-draws', drawCount);
+    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+  }
+
+  // Timer reset for daily tickets
+  function resetTicketsTimer() {
+    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
+    const now = Date.now();
+    if (!lastReset || now - lastReset >= 86400000) {
+      localStorage.setItem('bingo-tickets', '10');
+      localStorage.setItem('bingo-last-reset', now);
+      tickets = 10;
+      ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
+      button.disabled = false;
+      button.innerText = 'Deal';
+    }
+  }
 };
