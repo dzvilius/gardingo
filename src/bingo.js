@@ -278,7 +278,7 @@ export const setupBingo = async () => {
       document
         .getElementById('jackpot')
         .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! Jackpot!';
+      promoText.innerText = 'Congratulations! You Won $100 Credit!';
       winSound.play();
       hasWon = true;
     }
