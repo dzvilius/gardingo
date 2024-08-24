@@ -292,7 +292,7 @@ export const setupBingo = async () => {
       document
         .getElementById('jackpot')
         .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won $100 Credit!';
+      promoText.innerText = 'Congratulations! Jackpot!';
       resetGame();
     } else if (wonLines === 2 && markedIndices.length === 25) {
       document
@@ -308,12 +308,7 @@ export const setupBingo = async () => {
 
   // Reset game after win or loss
   const resetGame = () => {
-    // Clear "Leaderboard__item--won" class from all leaderboard items
-    const leaderboardItems = document.querySelectorAll('.Leaderboard__item');
-    leaderboardItems.forEach((item) => {
-      item.classList.remove('Leaderboard__item--won');
-    });
-
+    resetLeaderboard(); // Clear previous win indicators
     resetTicket(); // Reset the ticket grid
     tickets = 0;
     saveTickets(0);
@@ -325,6 +320,14 @@ export const setupBingo = async () => {
       resetTicketsTimer();
       location.reload(); // Force page refresh to ensure all UI elements are reset
     }, 500); // Short delay before refreshing
+  };
+
+  // Function to reset the leaderboard
+  const resetLeaderboard = () => {
+    const leaderboardItems = document.querySelectorAll('.Leaderboard__item');
+    leaderboardItems.forEach((item) => {
+      item.classList.remove('Leaderboard__item--won');
+    });
   };
 
   // Reset the ticket to the default empty state
@@ -341,6 +344,7 @@ export const setupBingo = async () => {
   button.addEventListener('click', () => {
     if (button.innerText === 'Deal') {
       if (tickets > 0) {
+        resetLeaderboard(); // Reset leaderboard before starting a new game
         currentTicket = generateTicket();
         renderTicket(currentTicket);
         drawCount = 0; // Reset draw count for new ticket
