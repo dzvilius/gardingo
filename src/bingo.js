@@ -173,7 +173,7 @@ export const setupBingo = async () => {
 
     checkWinConditions();
 
-    if (drawCount >= 51) {
+    if (drawCount >= 41) {
       alert('41 draws completed. Start a new game by dealing a new ticket.');
       resetTicket();
       button.innerText = 'Deal';
@@ -267,7 +267,7 @@ export const setupBingo = async () => {
     }
 
     // No winning lines, check if the game should end
-    if (drawCount === 51 && tickets === 0 && wonLines < 1) {
+    if (drawCount === 41 && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
       resetGame();
     }
@@ -369,7 +369,7 @@ export const setupBingo = async () => {
         button.innerText = 'Wait 24h';
       }
     } else if (button.innerText === 'Play') {
-      if (drawCount < 51) {
+      if (drawCount < 41) {
         drawImage();
       } else {
         alert('Maximum 41 draws reached. Start a new game.');
