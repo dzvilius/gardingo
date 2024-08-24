@@ -344,6 +344,7 @@ export const setupBingo = async () => {
         currentTicket = generateTicket();
         renderTicket(currentTicket);
         drawCount = 0; // Reset draw count for new ticket
+        drawnImages = []; // Reset drawn images for the new game
         saveDraws();
         saveTickets(--tickets);
         button.innerText = 'Play';
