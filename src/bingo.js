@@ -292,7 +292,7 @@ export const setupBingo = async () => {
       document
         .getElementById('jackpot')
         .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! Jackpot!';
+      promoText.innerText = 'Congratulations! You Won $100 Credit!';
       resetGame();
     } else if (wonLines === 2 && markedIndices.length === 25) {
       document
