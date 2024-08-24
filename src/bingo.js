@@ -73,7 +73,7 @@ export const setupBingo = async () => {
   gameContainer.appendChild(bingoGameApp.canvas);
 
   // Load sound assets
-  const clickSound = new Audio(require('./assets/sounds/click.mp3'));
+  const checkSound = new Audio(require('./assets/sounds/check.mp3'));
   const winSound = new Audio(require('./assets/sounds/win.mp3'));
 
   // Load the star image asset
@@ -181,7 +181,7 @@ export const setupBingo = async () => {
 
   // Mark a matching item on the bingo ticket
   const markTicket = (index) => {
-    clickSound.play();
+    checkSound.play();
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
