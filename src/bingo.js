@@ -125,6 +125,7 @@ export const setupBingo = async () => {
     const lastReset = localStorage.getItem('bingo-last-reset');
     const now = Date.now();
     if (!lastReset || now - lastReset >= 86400000) {
+      // 24 hours
       localStorage.setItem('bingo-tickets', '10');
       localStorage.setItem('bingo-last-reset', now);
       tickets = 10;
@@ -139,7 +140,7 @@ export const setupBingo = async () => {
   // Create empty ticket grid
   const createEmptyTicketGrid = () => {
     const ticketContainer = new Container();
-    ticketContainer.label = 'ticketContainer'; // Ensure the name is correctly set
+    ticketContainer.label = 'ticketContainer';
 
     for (let i = 0; i < 25; i++) {
       const row = Math.floor(i / 5);
@@ -180,28 +181,16 @@ export const setupBingo = async () => {
   const renderTicket = (ticket) => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
-    if (!ticketContainer) {
-      console.error('Ticket container not found.');
-      return;
-    }
 
     ticket.forEach((item, index) => {
       const texture =
         item === 'free-star'
           ? starTexture
           : gardenTextures[GARDEN_ITEMS.indexOf(item)];
+
       const sprite = ticketContainer.getChildAt(index);
       sprite.texture = texture;
     });
-  };
-
-  // Function to reset the state for a new game
-  const resetGameState = () => {
-    drawnImages = []; // Clear the list of drawn images
-    currentTicket = []; // Clear the current ticket
-    drawCount = 0; // Reset draw count
-    saveDraws(); // Update local storage
-    drawsDisplay.innerText = `Draws: ${drawCount} of 41`; // Update display
   };
 
   // Draw a random image
@@ -209,29 +198,14 @@ export const setupBingo = async () => {
     drawCount++;
     saveDraws();
 
-    if (!gameImage) {
-      console.error('Element with id "game-image" not found.');
-      return;
-    }
-
     const remainingItems = GARDEN_ITEMS.filter(
       (item) => !drawnImages.includes(item)
     );
-
-    if (remainingItems.length === 0) {
-      console.warn('No more images to draw.');
-      return;
-    }
-
     const randomIndex = Math.floor(Math.random() * remainingItems.length);
     const drawnItem = remainingItems[randomIndex];
     drawnImages.push(drawnItem);
 
-    try {
-      gameImage.src = `./assets/img/${drawnItem}.png`;
-    } catch (error) {
-      console.error('Error setting image source:', error);
-    }
+    gameImage.src = `./assets/img/${drawnItem}.png`;
 
     const ticketIndex = currentTicket.indexOf(drawnItem);
     if (ticketIndex !== -1) {
@@ -240,10 +214,10 @@ export const setupBingo = async () => {
 
     checkWinConditions();
 
+    // Check if 41 draws are complete
     if (drawCount >= 41) {
       alert('41 draws completed. Start a new game by dealing a new ticket.');
       resetTicket(); // Reset the ticket to the default state
-      resetGameState(); // Reset game state for a new game
       button.innerText = 'Deal';
     }
 
@@ -254,11 +228,6 @@ export const setupBingo = async () => {
   const markTicket = (index) => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
-    if (!ticketContainer) {
-      console.error('Ticket container not found.');
-      return;
-    }
-
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
     sprite.tint = 0xff0000; // Change tint to red when marked
@@ -323,7 +292,7 @@ export const setupBingo = async () => {
       document
         .getElementById('jackpot')
         .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won $100 Credit!';
+      promoText.innerText = 'Congratulations! Jackpot!';
       resetGame();
     } else if (wonLines === 2 && markedIndices.length === 25) {
       document
@@ -362,11 +331,6 @@ export const setupBingo = async () => {
   const resetTicket = () => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
-    if (!ticketContainer) {
-      console.error('Ticket container not found.');
-      return;
-    }
-
     ticketContainer.children.forEach((sprite, index) => {
       sprite.texture = index === 12 ? starTexture : Texture.WHITE;
       sprite.tint = index !== 12 ? 0xcccccc : 0xffffff;
@@ -379,9 +343,11 @@ export const setupBingo = async () => {
       if (tickets > 0) {
         currentTicket = generateTicket();
         renderTicket(currentTicket);
-        resetGameState(); // Reset game state when dealing a new ticket
+        drawCount = 0; // Reset draw count for new ticket
+        saveDraws();
         saveTickets(--tickets);
         button.innerText = 'Play';
+        drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
         promoText.innerText = '10 Free Tickets Daily!';
       } else {
         button.disabled = true;
