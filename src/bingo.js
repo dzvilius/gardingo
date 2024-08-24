@@ -230,31 +230,37 @@ export const setupBingo = async () => {
   const handleWin = (wonLines, markedIndices) => {
     let winMessage = '';
 
+    // Check for one line win
     if (wonLines >= 1 && !hasWon) {
       document
         .getElementById('one-line')
         .classList.add('Leaderboard__item--won');
       winMessage = 'Congratulations! You Won $5 Credit!';
+      promoText.innerText = winMessage;
+      winSound.play();
+      hasWon = true;
     }
 
-    if (wonLines >= 2 && !hasWon) {
+    // Check for two lines win
+    if (wonLines >= 2 && hasWon) {
       document
         .getElementById('two-lines')
         .classList.add('Leaderboard__item--won');
       winMessage = 'Congratulations! You Won $15 Credit!';
+      promoText.innerText = winMessage;
+      winSound.play();
+      hasWon = true;
     }
 
+    // Handle jackpot or full house
     if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31) {
       handleJackpot();
     } else if (wonLines === 2 && markedIndices.length === 25) {
       handleFullHouse();
     }
 
-    if (winMessage) {
-      promoText.innerText = winMessage;
-      winSound.play();
-      hasWon = true;
-    } else if (drawCount === 41 && tickets === 0 && wonLines < 1) {
+    // No winning lines, check if the game should end
+    if (drawCount === 41 && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
       resetGame();
     }
