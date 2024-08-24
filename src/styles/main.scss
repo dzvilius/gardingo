@@ -1,0 +1,54 @@
+// Set your brand colors
+$brand: yellow;
+
+// Path to Bulma's sass folder
+@use "bulma/sass" with (
+  $family-primary: '"Roboto", sans-serif',
+  $primary: $brand,
+);
+
+body {}
+
+.GameBrand {
+  text-align: center;
+  color: #fff;
+  padding: 20px 0;
+  font-size: 38px;
+  font-family: "Matemasie", sans-serif;
+}
+
+.GameStats {
+  width: 100%;
+}
+
+.GameStats__container {
+  background: #fff;
+  max-width: 420px;
+  padding: 10px;
+  margin: auto;
+  display: flex;
+}
+
+.GameStats__image {
+  height: 152px;
+  width: 152px;
+}
+
+.GameStats__leaderboard {
+  flex-grow: 1;
+}
+
+.Leaderboard {
+  font-size: 14px;
+  overflow: hidden;
+  color: #333;
+  margin-left: 10px;
+}
+
+.Leaderboard__item {
+  margin: 5px 0;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 3px 6px;
+  border: 1px solid #333;
+}
