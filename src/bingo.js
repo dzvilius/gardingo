@@ -1,4 +1,4 @@
-import './assets/img/broccoli.png';
+import './assets/img/star.svg';
 
 import { Application, Sprite, Assets } from 'pixi.js';
 
