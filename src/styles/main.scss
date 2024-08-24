@@ -13,7 +13,7 @@ body {}
   text-align: center;
   color: #fff;
   padding: 20px 0;
-  font-size: 38px;
+  font-size: 42px;
   font-family: "Matemasie", sans-serif;
 }
 
@@ -51,4 +51,41 @@ body {}
   font-weight: 500;
   padding: 3px 6px;
   border: 1px solid #333;
+}
+
+.GamePromo {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 10px 0;
+  color: #fff;
+}
+
+.GameCard {
+  width: 100%;
+}
+
+.GameCard__container {
+  background: #fff;
+  max-width: 420px;
+  padding: 10px;
+  margin: auto;
+}
+
+.GameFooter {
+  width: 100%;
+}
+
+.GameFooter__container {
+  max-width: 420px;
+  padding: 10px;
+  margin: auto;
+}
+
+.GameFooter__info {
+  font-size: 14px;
+}
+
+.GameFooter__action {
+  text-align: center;
 }
