@@ -6,13 +6,9 @@ Receive 10 free tickets daily, with a chance to win a $100 credits jackpot!
 
 Please read the [Project Brief](concept/Project_Brief.md) document to learn more about the client and project requirements.
 
-[Live Preview](https://x) (Coming soon...)
+[Live Preview](https://gardingo.pages.dev/)
 
 ![Game Screens](concept/Screens.png)
-
-#### Table of Contents
-
-Coming soon...
 
 ## Strategy
 
@@ -57,10 +53,6 @@ Provide users with a daily free-to-play Bingo game, offering a chance to win cre
 * Engaging experience
 * Mobile optimised
 
-#### User Stories
-
-...
-
 #### Designs
 
 51 unique garden items.
@@ -69,7 +61,8 @@ Provide users with a daily free-to-play Bingo game, offering a chance to win cre
 
 #### Fonts
 
-...
+- Roboto
+- Matemasie
 
 #### Brand Colours
 
