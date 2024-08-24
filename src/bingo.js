@@ -67,7 +67,6 @@ export const setupBingo = async () => {
     background: '#fff',
     height: 400,
     width: 400,
-    // resizeTo: gameContainer,
   });
 
   // Add canvas to the container
@@ -141,17 +140,15 @@ export const setupBingo = async () => {
   // Create empty ticket grid
   const createEmptyTicketGrid = () => {
     const ticketContainer = new Container();
-    ticketContainer.label = 'ticketContainer';
+    ticketContainer.name = 'ticketContainer';
 
     for (let i = 0; i < 25; i++) {
       const row = Math.floor(i / 5);
       const col = i % 5;
 
-      // Use a placeholder texture or skip creating a sprite if no valid texture
       const texture = i === 12 ? starTexture : Texture.WHITE;
 
       const sprite = new Sprite(texture);
-
       sprite.width = 70;
       sprite.height = 70;
       sprite.x = col * 80 + 5;
@@ -220,6 +217,7 @@ export const setupBingo = async () => {
     // Check if 41 draws are complete
     if (drawCount >= 41) {
       alert('41 draws completed. Start a new game by dealing a new ticket.');
+      resetTicket(); // Reset the ticket to the default state
       button.innerText = 'Deal';
     }
 
@@ -232,6 +230,7 @@ export const setupBingo = async () => {
       bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
+    sprite.tint = 0xff0000; // Change tint to red when marked
   };
 
   // Check for win conditions
@@ -258,25 +257,48 @@ export const setupBingo = async () => {
     ];
 
     let wonLines = 0;
+    let winningIndices = new Set();
 
     lines.forEach((line) => {
       if (line.every((index) => markedIndices.includes(index))) {
         wonLines++;
+        line.forEach((index) => {
+          winningIndices.add(index);
+        });
         if (wonLines === 1) {
-          document.getElementById('one-line').classList.add('Leaderboard__item--won');
+          document
+            .getElementById('one-line')
+            .classList.add('Leaderboard__item--won');
+          promoText.innerText = 'Congratulations! You Won $5 Credit!';
         } else if (wonLines === 2) {
-          document.getElementById('two-lines').classList.add('Leaderboard__item--won');
+          document
+            .getElementById('two-lines')
+            .classList.add('Leaderboard__item--won');
+          promoText.innerText = 'Congratulations! You Won $15 Credit!';
         }
       }
     });
 
+    // Highlight the winning lines
+    ticketContainer.children.forEach((sprite, index) => {
+      if (winningIndices.has(index)) {
+        sprite.tint = 0xff0000; // Highlight the winning line
+      } else if (sprite.texture === starTexture) {
+        sprite.tint = 0xffffff; // Reset tint for non-winning stars
+      }
+    });
+
     if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31) {
-      document.getElementById('jackpot').classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won!';
+      document
+        .getElementById('jackpot')
+        .classList.add('Leaderboard__item--won');
+      promoText.innerText = 'Congratulations! You Won $100 Credit!';
       resetGame();
     } else if (wonLines === 2 && markedIndices.length === 25) {
-      document.getElementById('full-house').classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won!';
+      document
+        .getElementById('full-house')
+        .classList.add('Leaderboard__item--won');
+      promoText.innerText = 'Congratulations! You Won $25 Credit!';
       resetGame();
     } else if (drawCount === 41 && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
@@ -286,6 +308,13 @@ export const setupBingo = async () => {
 
   // Reset game after win or loss
   const resetGame = () => {
+    // Clear "Leaderboard__item--won" class from all leaderboard items
+    const leaderboardItems = document.querySelectorAll('.Leaderboard__item');
+    leaderboardItems.forEach((item) => {
+      item.classList.remove('Leaderboard__item--won');
+    });
+
+    resetTicket(); // Reset the ticket grid
     tickets = 0;
     saveTickets(0);
     drawCount = 0;
@@ -294,7 +323,18 @@ export const setupBingo = async () => {
 
     setTimeout(() => {
       resetTicketsTimer();
-    }, 86400000); // 24h
+      location.reload(); // Force page refresh to ensure all UI elements are reset
+    }, 500); // Short delay before refreshing
+  };
+
+  // Reset the ticket to the default empty state
+  const resetTicket = () => {
+    const ticketContainer =
+      bingoGameApp.stage.getChildByName('ticketContainer');
+    ticketContainer.children.forEach((sprite, index) => {
+      sprite.texture = index === 12 ? starTexture : Texture.WHITE;
+      sprite.tint = index !== 12 ? 0xcccccc : 0xffffff;
+    });
   };
 
   // Button click event
@@ -308,6 +348,7 @@ export const setupBingo = async () => {
         saveTickets(--tickets);
         button.innerText = 'Play';
         drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+        promoText.innerText = '10 Free Tickets Daily!';
       } else {
         button.disabled = true;
         button.innerText = 'Wait 24h';
