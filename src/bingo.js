@@ -125,7 +125,6 @@ export const setupBingo = async () => {
     const lastReset = localStorage.getItem('bingo-last-reset');
     const now = Date.now();
     if (!lastReset || now - lastReset >= 86400000) {
-      // 24 hours
       localStorage.setItem('bingo-tickets', '10');
       localStorage.setItem('bingo-last-reset', now);
       tickets = 10;
