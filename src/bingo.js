@@ -1,4 +1,4 @@
-import { Application, Sprite, Assets, Container } from 'pixi.js';
+import { Application, Sprite, Assets, Container, Texture } from 'pixi.js';
 
 // Number of unique garden images
 const GARDEN_ITEMS = [
@@ -86,27 +86,120 @@ export const setupBingo = async () => {
   let drawCount = 0;
 
   const gameImage = document.getElementById('game-image');
+  const promoText = document.getElementById('game-promo');
+  const ticketsDisplay = document.getElementById('game-tickets');
+  const drawsDisplay = document.getElementById('game-draws');
+  const button = document.querySelector('.GameFooter__action .button');
 
-  // Function to generate a new bingo ticket
-  function generateTicket() {
+  // Local storage management
+  const loadTickets = () => {
+    let tickets = parseInt(localStorage.getItem('bingo-tickets'), 10);
+    if (isNaN(tickets) || tickets < 1) {
+      tickets = 10;
+      localStorage.setItem('bingo-tickets', tickets);
+    }
+    return tickets;
+  };
+
+  let tickets = loadTickets();
+  ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
+
+  const saveTickets = (newTickets) => {
+    localStorage.setItem('bingo-tickets', newTickets);
+    ticketsDisplay.innerText = `Your Tickets: ${newTickets}`;
+  };
+
+  const loadDraws = () => {
+    drawCount = parseInt(localStorage.getItem('bingo-draws'), 10) || 0;
+    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+  };
+
+  const saveDraws = () => {
+    localStorage.setItem('bingo-draws', drawCount);
+    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+  };
+
+  loadDraws();
+
+  // Timer reset for daily tickets
+  const resetTicketsTimer = () => {
+    const lastReset = localStorage.getItem('bingo-last-reset');
+    const now = Date.now();
+    if (!lastReset || now - lastReset >= 86400000) {
+      // 24 hours
+      localStorage.setItem('bingo-tickets', '10');
+      localStorage.setItem('bingo-last-reset', now);
+      tickets = 10;
+      ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
+      button.disabled = false;
+      button.innerText = 'Deal';
+    }
+  };
+
+  resetTicketsTimer();
+
+  // Create empty ticket grid
+  const createEmptyTicketGrid = () => {
+    const ticketContainer = new Container();
+    ticketContainer.name = 'ticketContainer';
+
+    for (let i = 0; i < 25; i++) {
+      const row = Math.floor(i / 5);
+      const col = i % 5;
+
+      // Use a placeholder texture or skip creating a sprite if no valid texture
+      const texture = i === 12 ? starTexture : Texture.WHITE;
+
+      const sprite = new Sprite(texture);
+
+      sprite.width = 70;
+      sprite.height = 70;
+      sprite.x = col * 80 + 5;
+      sprite.y = row * 80 + 5;
+      sprite.tint = i !== 12 ? 0xcccccc : 0xffffff; // Grey color for empty spots
+
+      ticketContainer.addChild(sprite);
+    }
+
+    bingoGameApp.stage.addChild(ticketContainer);
+  };
+
+  createEmptyTicketGrid();
+
+  // Generate a new bingo ticket
+  const generateTicket = () => {
     const items = [...GARDEN_ITEMS];
     const ticket = [];
 
-    // Shuffle items and pick the first 24 for the card
     while (ticket.length < 24) {
       const randomIndex = Math.floor(Math.random() * items.length);
       ticket.push(items.splice(randomIndex, 1)[0]);
     }
 
-    // Insert "Free Star" in the center
     ticket.splice(12, 0, 'free-star');
-
     return ticket;
-  }
+  };
 
-  // Function to draw a random image
-  function drawImage() {
+  // Render ticket with images
+  const renderTicket = (ticket) => {
+    const ticketContainer =
+      bingoGameApp.stage.getChildByName('ticketContainer');
+
+    ticket.forEach((item, index) => {
+      const texture =
+        item === 'free-star'
+          ? starTexture
+          : gardenTextures[GARDEN_ITEMS.indexOf(item)];
+
+      const sprite = ticketContainer.getChildAt(index);
+      sprite.texture = texture;
+    });
+  };
+
+  // Draw a random image
+  const drawImage = () => {
     drawCount++;
+    saveDraws();
 
     const remainingItems = GARDEN_ITEMS.filter(
       (item) => !drawnImages.includes(item)
@@ -115,77 +208,106 @@ export const setupBingo = async () => {
     const drawnItem = remainingItems[randomIndex];
     drawnImages.push(drawnItem);
 
-    // Update the displayed image
     gameImage.src = `./assets/img/${drawnItem}.png`;
 
-    // Check if the item matches any on the current ticket
     const ticketIndex = currentTicket.indexOf(drawnItem);
     if (ticketIndex !== -1) {
       markTicket(ticketIndex);
     }
 
-    // Check win conditions
     checkWinConditions();
-  }
+  };
 
-  // Function to mark a matching item on the bingo ticket
-  function markTicket(index) {
-    // Logic to place a star on the matched item
+  // Mark a matching item on the bingo ticket
+  const markTicket = (index) => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
-  }
+  };
 
-  // Function to check for win conditions
-  function checkWinConditions() {
-    // Logic to check if the player has "one line", "two lines", "full house", or "jackpot"
-    // This will depend on how the grid is set up and checking if the rows, columns, or diagonals are marked
-  }
+  // Check for win conditions
+  const checkWinConditions = () => {
+    const ticketContainer =
+      bingoGameApp.stage.getChildByName('ticketContainer');
+    const markedIndices = ticketContainer.children
+      .map((sprite, index) => (sprite.texture === starTexture ? index : -1))
+      .filter((index) => index !== -1);
 
-  // Set up event listener for "Draw" and "Play" button
-  const button = document.querySelector('.GameFooter__action .button');
-  button.addEventListener('click', () => {
-    if (button.innerText === 'Deal') {
-      currentTicket = generateTicket();
-      button.innerText = 'Play';
-      // Render the new ticket on the screen
-      renderTicket(currentTicket);
-    } else if (button.innerText === 'Play') {
-      if (drawCount < 41) {
-        drawImage();
-      } else {
-        alert('Maximum 41 draws reached. Start a new game.');
+    const lines = [
+      [0, 1, 2, 3, 4],
+      [5, 6, 7, 8, 9],
+      [10, 11, 12, 13, 14],
+      [15, 16, 17, 18, 19],
+      [20, 21, 22, 23, 24],
+      [0, 5, 10, 15, 20],
+      [1, 6, 11, 16, 21],
+      [2, 7, 12, 17, 22],
+      [3, 8, 13, 18, 23],
+      [4, 9, 14, 19, 24],
+      [0, 6, 12, 18, 24],
+      [4, 8, 12, 16, 20],
+    ];
+
+    let wonLines = 0;
+
+    lines.forEach((line) => {
+      if (line.every((index) => markedIndices.includes(index))) {
+        wonLines++;
+        if (wonLines === 1) {
+          document.getElementById('one-line').classList.add('won');
+        } else if (wonLines === 2) {
+          document.getElementById('two-lines').classList.add('won');
+        }
       }
-    }
-  });
-
-  // Function to render the ticket on the screen
-  function renderTicket(ticket) {
-    const ticketContainer = new Container();
-    ticketContainer.name = 'ticketContainer';
-
-    ticket.forEach((item, index) => {
-      const row = Math.floor(index / 5);
-      const col = index % 5;
-
-      const texture =
-        item === 'free-star'
-          ? starTexture
-          : gardenTextures[GARDEN_ITEMS.indexOf(item)];
-      const sprite = new Sprite(texture);
-
-      // Set the sprite's size to 70x70
-      sprite.width = 70;
-      sprite.height = 70;
-
-      // Calculate the position with a 5px margin on each side
-      sprite.x = col * 80 + 5; // (70px + 10px gap) centered
-      sprite.y = row * 80 + 5; // (70px + 10px gap) centered
-
-      ticketContainer.addChild(sprite);
     });
 
-    bingoGameApp.stage.addChild(ticketContainer);
-  }
+    if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31) {
+      document.getElementById('jackpot').classList.add('won');
+      promoText.innerText = 'Congratulations! You Won!';
+      resetGame();
+    } else if (wonLines === 2 && markedIndices.length === 25) {
+      document.getElementById('full-house').classList.add('won');
+      promoText.innerText = 'Congratulations! You Won!';
+      resetGame();
+    } else if (drawCount === 41 && tickets === 0 && wonLines < 1) {
+      promoText.innerText = 'Better Luck Next Time!';
+      resetGame();
+    }
+  };
+
+  // Reset game after win or loss
+  const resetGame = () => {
+    tickets = 0;
+    saveTickets(0);
+    drawCount = 0;
+    saveDraws();
+    button.disabled = true;
+
+    setTimeout(() => {
+      resetTicketsTimer();
+    }, 86400000); // 24h
+  };
+
+  // Button click event
+  button.addEventListener('click', () => {
+    if (tickets > 0) {
+      if (button.innerText === 'Deal') {
+        currentTicket = generateTicket();
+        renderTicket(currentTicket);
+        button.innerText = 'Play';
+      } else if (button.innerText === 'Play') {
+        if (drawCount < 41) {
+          drawImage();
+        } else {
+          alert('Maximum 41 draws reached. Start a new game.');
+        }
+      }
+      saveTickets(--tickets);
+    }
+    if (tickets === 0) {
+      button.disabled = true;
+      button.innerText = 'Wait 24h';
+    }
+  });
 };
