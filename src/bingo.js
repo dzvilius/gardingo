@@ -75,6 +75,8 @@ export const setupBingo = async () => {
   gameContainer.appendChild(bingoGameApp.canvas);
 
   // Load assets
+  const dealSound = new Audio(require('./assets/sounds/deal.mp3'));
+  const playSound = new Audio(require('./assets/sounds/play.mp3'));
   const checkSound = new Audio(require('./assets/sounds/check.mp3'));
   const winSound = new Audio(require('./assets/sounds/win.mp3'));
   const starTexture = await Assets.load(require('./assets/img/star.svg'));
@@ -106,7 +108,7 @@ export const setupBingo = async () => {
   // Create an empty ticket grid
   const createEmptyTicketGrid = () => {
     const ticketContainer = new Container();
-    ticketContainer.name = 'ticketContainer';
+    ticketContainer.label = 'ticketContainer';
 
     for (let i = 0; i < TICKET_SIZE; i++) {
       const texture = i === FREE_STAR_INDEX ? starTexture : Texture.WHITE;
@@ -344,6 +346,47 @@ export const setupBingo = async () => {
     };
   };
 
+  // Shuffle animation for ticket grid items
+  const shuffleTicketGrid = (ticketContainer, duration = 500) => {
+    const interval = 50; // Interval between shuffles
+    const endTime = Date.now() + duration;
+
+    const shuffle = () => {
+      if (Date.now() >= endTime) {
+        clearInterval(shuffleInterval);
+        renderTicket(currentTicket); // Render the final ticket
+        return;
+      }
+
+      ticketContainer.children.forEach((sprite) => {
+        const randomTexture =
+          gardenTextures[Math.floor(Math.random() * gardenTextures.length)];
+        sprite.texture = randomTexture;
+      });
+    };
+
+    const shuffleInterval = setInterval(shuffle, interval);
+  };
+
+  // Shuffle animation for game image
+  const shuffleGameImage = (duration = 500) => {
+    const interval = 50; // Interval between shuffles
+    const endTime = Date.now() + duration;
+
+    const shuffle = () => {
+      if (Date.now() >= endTime) {
+        clearInterval(shuffleInterval);
+        return;
+      }
+
+      const randomItem =
+        GARDEN_ITEMS[Math.floor(Math.random() * GARDEN_ITEMS.length)];
+      gameImage.src = `./assets/img/${randomItem}.png`;
+    };
+
+    const shuffleInterval = setInterval(shuffle, interval);
+  };
+
   // Button click event handler
   button.addEventListener(
     'click',
@@ -352,7 +395,6 @@ export const setupBingo = async () => {
         if (tickets > 0) {
           resetLeaderboard();
           currentTicket = generateTicket();
-          renderTicket(currentTicket);
           drawCount = 0;
           drawnImages = [];
           saveDraws();
@@ -360,13 +402,20 @@ export const setupBingo = async () => {
           button.innerText = 'Play';
           drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
           promoText.innerText = '10 Free Tickets Daily!';
+          dealSound.play();
+
+          const ticketContainer =
+            bingoGameApp.stage.getChildByName('ticketContainer');
+          shuffleTicketGrid(ticketContainer);
         } else {
           button.disabled = true;
           button.innerText = 'Wait 24h';
         }
       } else if (button.innerText === 'Play') {
         if (drawCount < MAX_DRAWS) {
-          drawImage();
+          shuffleGameImage();
+          setTimeout(drawImage, 500);
+          playSound.play();
         } else {
           alert('Maximum 45 draws reached. Start a new game.');
           button.innerText = 'Deal';
@@ -425,7 +474,8 @@ export const setupBingo = async () => {
     if (timeLeft === 0) {
       resetTickets();
     } else {
-      setTimeout(resetTickets, timeLeft);3
+      setTimeout(resetTickets, timeLeft);
+      3;
     }
   }
 
