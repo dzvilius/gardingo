@@ -385,7 +385,7 @@ export const setupBingo = async () => {
   button.addEventListener(
     'click',
     debounce(() => {
-      if (button.innerText === 'Deal') {
+      if (button.innerText === 'New Ticket') {
         if (tickets > 0) {
           resetLeaderboard();
           currentTicket = generateTicket();
@@ -413,7 +413,7 @@ export const setupBingo = async () => {
         } else {
           alert('45 draws completed. Start a new game by dealing a new ticket.');
           resetTicket();
-          button.innerText = 'Deal';
+          button.innerText = 'New Ticket';
         }
       }
     }, 300)
@@ -481,6 +481,6 @@ export const setupBingo = async () => {
     tickets = 10;
     ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
     button.disabled = false;
-    button.innerText = 'Deal';
+    button.innerText = 'New Ticket';
   }
 };
