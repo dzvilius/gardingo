@@ -173,12 +173,6 @@ export const setupBingo = async () => {
 
     checkWinConditions();
 
-    if (drawCount >= MAX_DRAWS) {
-      alert('45 draws completed. Start a new game by dealing a new ticket.');
-      resetTicket();
-      button.innerText = 'Deal';
-    }
-
     drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
   };
 
@@ -399,7 +393,7 @@ export const setupBingo = async () => {
           drawnImages = [];
           saveDraws();
           saveTickets(--tickets);
-          button.innerText = 'Play';
+          button.innerText = 'Play Game';
           drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
           promoText.innerText = '10 Free Tickets Daily!';
           dealSound.play();
@@ -411,13 +405,14 @@ export const setupBingo = async () => {
           button.disabled = true;
           button.innerText = 'Wait 24h';
         }
-      } else if (button.innerText === 'Play') {
+      } else if (button.innerText === 'Play Game') {
         if (drawCount < MAX_DRAWS) {
           shuffleGameImage();
           setTimeout(drawImage, 500);
           playSound.play();
         } else {
-          alert('Maximum 45 draws reached. Start a new game.');
+          alert('45 draws completed. Start a new game by dealing a new ticket.');
+          resetTicket();
           button.innerText = 'Deal';
         }
       }
