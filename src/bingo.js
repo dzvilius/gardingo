@@ -55,8 +55,8 @@ const GARDEN_ITEMS = [
   'watermelon',
 ];
 
-const FREE_TICKETS = 1;
-const MAX_DRAWS = 6;
+const FREE_TICKETS = 10;
+const MAX_DRAWS = 46;
 const TICKET_SIZE = 25;
 const FREE_STAR_INDEX = 12;
 const TICKET_RESET_TIME = 86400000; // 24 hours in milliseconds
