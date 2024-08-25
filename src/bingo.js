@@ -142,7 +142,7 @@ const updateDomElements = (domElements, gameState) => {
 // Create an empty ticket grid
 const createEmptyTicketGrid = (bingoGameApp, starTexture) => {
   const ticketContainer = new Container();
-  ticketContainer.name = 'ticketContainer';
+  ticketContainer.label = 'ticketContainer';
 
   for (let i = 0; i < TICKET_SIZE; i++) {
     const texture = i === FREE_STAR_INDEX ? starTexture : Texture.WHITE;
@@ -212,6 +212,12 @@ const playGame = (bingoGameApp, assets, gameState, domElements) => {
       domElements.button.disabled = false;
     }, 500);
     assets.playSound.play();
+
+    // Decrement jackpotDrawsLeft and update the DOM, ensuring it doesn't go below 0
+    if (gameState.jackpotDrawsLeft > 0) {
+      gameState.jackpotDrawsLeft--;
+    }
+    domElements.jackpotCounter.innerText = gameState.jackpotDrawsLeft;
   }
 };
 
