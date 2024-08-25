@@ -242,6 +242,9 @@ export const setupBingo = async () => {
         .classList.add('Leaderboard__item--won');
       winMessage = 'Congratulations! You Won $5 Credit!';
       promoText.innerText = winMessage;
+      promoText.classList.remove('GamePromo__text--win');
+      void promoText.offsetWidth;
+      promoText.classList.add('GamePromo__text--win');
       winSound.play();
       oneLineWon = true;
       hasWon = true;
@@ -253,6 +256,9 @@ export const setupBingo = async () => {
         .classList.add('Leaderboard__item--won');
       winMessage = 'Congratulations! You Won $15 Credit!';
       promoText.innerText = winMessage;
+      promoText.classList.remove('GamePromo__text--win');
+      void promoText.offsetWidth;
+      promoText.classList.add('GamePromo__text--win');
       winSound.play();
       twoLinesWon = true;
       hasWon = true;
@@ -288,6 +294,7 @@ export const setupBingo = async () => {
   const handleJackpot = () => {
     document.getElementById('jackpot').classList.add('Leaderboard__item--won');
     promoText.innerText = 'Congratulations! You Won $100 Credit!';
+    promoText.classList.add('GamePromo__text--win');
     winSound.play();
     fullHouseWon = true;
     hasWon = true;
@@ -300,6 +307,7 @@ export const setupBingo = async () => {
         .getElementById('full-house')
         .classList.add('Leaderboard__item--won');
       promoText.innerText = 'Congratulations! You Won $25 Credit!';
+      promoText.classList.add('GamePromo__text--win');
       winSound.play();
       fullHouseWon = true;
       hasWon = true;

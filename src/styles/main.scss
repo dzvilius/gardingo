@@ -2,12 +2,13 @@
 $brand: green;
 
 // Path to Bulma's sass folder
-@use "bulma/sass" with (
+@use 'bulma/sass' with (
   $family-primary: '"Roboto", sans-serif',
-  $primary: $brand,
+  $primary: $brand
 );
 
-body {}
+body {
+}
 
 .GameBrand {
   text-align: center;
@@ -15,7 +16,7 @@ body {}
   padding: 5px 0 15px 0;
   font-size: 36px;
   line-height: 1;
-  font-family: "Matemasie", sans-serif;
+  font-family: 'Matemasie', sans-serif;
 }
 
 .GameStats {
@@ -78,10 +79,26 @@ body {}
 
 .GamePromo {
   text-align: center;
+  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.GamePromo__text {
+  color: #fff;
   font-size: 14px;
   font-weight: 500;
-  padding: 6px 0;
+  display: inline-block;
+}
+
+.GamePromo__text--win {
   color: #fff;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: green;
+  width: 100%;
+  max-width: 410px;
 }
 
 .GameCard {
@@ -115,7 +132,7 @@ body {}
   width: 100%;
 }
 
-.GameFooter__info-item  {
+.GameFooter__info-item {
   width: 50%;
 }
 
