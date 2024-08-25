@@ -59,6 +59,7 @@ const MAX_DRAWS = 45;
 const TICKET_SIZE = 25;
 const FREE_STAR_INDEX = 12;
 const TICKET_RESET_TIME = 86400000; // 24 hours in milliseconds
+const JACKPOT_THRESHOLD = 35;
 
 export const setupBingo = async () => {
   const gameContainer = document.getElementById('bingo-game');
@@ -93,6 +94,9 @@ export const setupBingo = async () => {
   let oneLineWon = false;
   let twoLinesWon = false;
   let fullHouseWon = false;
+  let jackpotDrawsLeft = JACKPOT_THRESHOLD;
+  const jackpotCounter = document.querySelector('#jackpot .Leaderboard__item-count');
+  jackpotCounter.innerText = jackpotDrawsLeft;
 
   // DOM elements
   const gameImage = document.getElementById('game-image');
@@ -174,6 +178,15 @@ export const setupBingo = async () => {
     checkWinConditions();
 
     drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
+    updateJackpotCounter();
+  };
+
+  // Update the jackpot counter
+  const updateJackpotCounter = () => {
+    if (jackpotDrawsLeft > 0) {
+      jackpotDrawsLeft--;
+      jackpotCounter.innerText = jackpotDrawsLeft;
+    }
   };
 
   // Mark a ticket item as drawn
@@ -183,7 +196,7 @@ export const setupBingo = async () => {
       bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
-    sprite.tint = 0xff0000;
+    sprite.tint = 0x00FF00;
   };
 
   // Check if the player has won
@@ -266,7 +279,7 @@ export const setupBingo = async () => {
   const highlightWinningLines = (ticketContainer, winningIndices) => {
     ticketContainer.children.forEach((sprite, index) => {
       sprite.tint = winningIndices.has(index)
-        ? 0xff0000
+        ? 0x00FF00
         : sprite.texture === starTexture
         ? 0xffffff
         : 0xcccccc;
@@ -348,7 +361,7 @@ export const setupBingo = async () => {
     const shuffle = () => {
       if (Date.now() >= endTime) {
         clearInterval(shuffleInterval);
-        renderTicket(currentTicket); // Render the final ticket
+        renderTicket(currentTicket);
         return;
       }
 
@@ -364,7 +377,7 @@ export const setupBingo = async () => {
 
   // Shuffle animation for game image
   const shuffleGameImage = (duration = 500) => {
-    const interval = 50; // Interval between shuffles
+    const interval = 50;
     const endTime = Date.now() + duration;
 
     const shuffle = () => {
