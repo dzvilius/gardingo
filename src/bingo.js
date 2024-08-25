@@ -151,7 +151,7 @@ export const setupBingo = async () => {
       const texture = item === 'free-star' ? starTexture : gardenTextures[GARDEN_ITEMS.indexOf(item)];
       const sprite = ticketContainer.getChildAt(index);
       sprite.texture = texture;
-      sprite.tint = 0xffffff; // Remove tint for images
+      sprite.tint = 0xffffff;
     });
   };
 
@@ -173,6 +173,10 @@ export const setupBingo = async () => {
 
     drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
     updateJackpotCounter();
+
+    if (drawCount >= MAX_DRAWS) {
+      button.innerText = 'New Game';
+    }
   };
 
   // Update the jackpot counter
@@ -189,7 +193,7 @@ export const setupBingo = async () => {
     const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
-    sprite.tint = 0x00FF00; // Mark drawn item with green tint
+    sprite.tint = 0x00FF00;
   };
 
   // Check if the player has won
@@ -271,11 +275,11 @@ export const setupBingo = async () => {
   const highlightWinningLines = (ticketContainer, winningIndices) => {
     ticketContainer.children.forEach((sprite, index) => {
       if (winningIndices.has(index)) {
-        sprite.tint = 0x00FF00; // Green tint for winning lines
+        sprite.tint = 0x00FF00;
       } else if (sprite.texture === starTexture) {
-        sprite.tint = 0xffffff; // No tint for marked items
+        sprite.tint = 0xffffff;
       } else {
-        sprite.tint = 0xffffff; // No tint for other items
+        sprite.tint = 0xffffff;
       }
     });
   };
@@ -348,7 +352,7 @@ export const setupBingo = async () => {
 
   // Shuffle animation for ticket grid items
   const shuffleTicketGrid = (ticketContainer, duration = 500) => {
-    const interval = 50; // Interval between shuffles
+    const interval = 50;
     const endTime = Date.now() + duration;
 
     const shuffle = () => {
@@ -361,7 +365,7 @@ export const setupBingo = async () => {
       ticketContainer.children.forEach((sprite) => {
         const randomTexture = gardenTextures[Math.floor(Math.random() * gardenTextures.length)];
         sprite.texture = randomTexture;
-        sprite.tint = 0xffffff; // Ensure no tint during shuffle
+        sprite.tint = 0xffffff;
       });
     };
 
@@ -390,7 +394,7 @@ export const setupBingo = async () => {
   button.addEventListener(
     'click',
     debounce(() => {
-      if (button.innerText === 'New Ticket') {
+      if (button.innerText === 'New Game') {
         if (tickets > 0) {
           resetLeaderboard();
           currentTicket = generateTicket();
@@ -398,7 +402,7 @@ export const setupBingo = async () => {
           drawnImages = [];
           saveDraws();
           saveTickets(--tickets);
-          button.innerText = 'Play Game';
+          button.innerText = 'Play';
           drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
           promoText.innerText = '10 Free Tickets Daily!';
           dealSound.play();
@@ -409,16 +413,26 @@ export const setupBingo = async () => {
           button.disabled = true;
           button.innerText = 'Wait 24h';
         }
-      } else if (button.innerText === 'Play Game') {
+      } else if (button.innerText === 'Play') {
         if (drawCount < MAX_DRAWS) {
           shuffleGameImage();
           setTimeout(drawImage, 500);
           playSound.play();
-        } else {
-          alert('45 draws completed. Start a new game by dealing a new ticket.');
-          resetTicket();
-          button.innerText = 'New Ticket';
         }
+      } else if (button.innerText === 'New Game') {
+        resetLeaderboard();
+        currentTicket = generateTicket();
+        drawCount = 0;
+        drawnImages = [];
+        saveDraws();
+        saveTickets(--tickets);
+        button.innerText = 'Play';
+        drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
+        promoText.innerText = '10 Free Tickets Daily!';
+        dealSound.play();
+
+        const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
+        shuffleTicketGrid(ticketContainer);
       }
     }, 300)
   );
@@ -484,6 +498,6 @@ export const setupBingo = async () => {
     tickets = 10;
     ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
     button.disabled = false;
-    button.innerText = 'New Ticket';
+    button.innerText = 'New Game';
   }
 };
