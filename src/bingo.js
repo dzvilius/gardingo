@@ -145,16 +145,13 @@ export const setupBingo = async () => {
 
   // Render the ticket on the grid
   const renderTicket = (ticket) => {
-    const ticketContainer =
-      bingoGameApp.stage.getChildByName('ticketContainer');
+    const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
 
     ticket.forEach((item, index) => {
-      const texture =
-        item === 'free-star'
-          ? starTexture
-          : gardenTextures[GARDEN_ITEMS.indexOf(item)];
+      const texture = item === 'free-star' ? starTexture : gardenTextures[GARDEN_ITEMS.indexOf(item)];
       const sprite = ticketContainer.getChildAt(index);
       sprite.texture = texture;
+      sprite.tint = 0xffffff; // Remove tint for images
     });
   };
 
@@ -163,11 +160,8 @@ export const setupBingo = async () => {
     drawCount++;
     saveDraws();
 
-    const remainingItems = GARDEN_ITEMS.filter(
-      (item) => !drawnImages.includes(item)
-    );
-    const drawnItem =
-      remainingItems[Math.floor(Math.random() * remainingItems.length)];
+    const remainingItems = GARDEN_ITEMS.filter((item) => !drawnImages.includes(item));
+    const drawnItem = remainingItems[Math.floor(Math.random() * remainingItems.length)];
     drawnImages.push(drawnItem);
 
     gameImage.src = `./assets/img/${drawnItem}.png`;
@@ -192,17 +186,15 @@ export const setupBingo = async () => {
   // Mark a ticket item as drawn
   const markTicket = (index) => {
     checkSound.play();
-    const ticketContainer =
-      bingoGameApp.stage.getChildByName('ticketContainer');
+    const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
-    sprite.tint = 0x00FF00;
+    sprite.tint = 0x00FF00; // Mark drawn item with green tint
   };
 
   // Check if the player has won
   const checkWinConditions = () => {
-    const ticketContainer =
-      bingoGameApp.stage.getChildByName('ticketContainer');
+    const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
     const markedIndices = Array.from(ticketContainer.children)
       .map((sprite, index) => (sprite.texture === starTexture ? index : -1))
       .filter((index) => index !== -1);
@@ -278,11 +270,13 @@ export const setupBingo = async () => {
   // Highlight the winning lines on the ticket
   const highlightWinningLines = (ticketContainer, winningIndices) => {
     ticketContainer.children.forEach((sprite, index) => {
-      sprite.tint = winningIndices.has(index)
-        ? 0x00FF00
-        : sprite.texture === starTexture
-        ? 0xffffff
-        : 0xcccccc;
+      if (winningIndices.has(index)) {
+        sprite.tint = 0x00FF00; // Green tint for winning lines
+      } else if (sprite.texture === starTexture) {
+        sprite.tint = 0xffffff; // No tint for marked items
+      } else {
+        sprite.tint = 0xffffff; // No tint for other items
+      }
     });
   };
 
@@ -335,8 +329,7 @@ export const setupBingo = async () => {
 
   // Reset the ticket grid
   const resetTicket = () => {
-    const ticketContainer =
-      bingoGameApp.stage.getChildByName('ticketContainer');
+    const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
     ticketContainer.children.forEach((sprite, index) => {
       sprite.texture = index === FREE_STAR_INDEX ? starTexture : Texture.WHITE;
       sprite.tint = index !== FREE_STAR_INDEX ? 0xcccccc : 0xffffff;
@@ -366,9 +359,9 @@ export const setupBingo = async () => {
       }
 
       ticketContainer.children.forEach((sprite) => {
-        const randomTexture =
-          gardenTextures[Math.floor(Math.random() * gardenTextures.length)];
+        const randomTexture = gardenTextures[Math.floor(Math.random() * gardenTextures.length)];
         sprite.texture = randomTexture;
+        sprite.tint = 0xffffff; // Ensure no tint during shuffle
       });
     };
 
@@ -386,8 +379,7 @@ export const setupBingo = async () => {
         return;
       }
 
-      const randomItem =
-        GARDEN_ITEMS[Math.floor(Math.random() * GARDEN_ITEMS.length)];
+      const randomItem = GARDEN_ITEMS[Math.floor(Math.random() * GARDEN_ITEMS.length)];
       gameImage.src = `./assets/img/${randomItem}.png`;
     };
 
@@ -411,8 +403,7 @@ export const setupBingo = async () => {
           promoText.innerText = '10 Free Tickets Daily!';
           dealSound.play();
 
-          const ticketContainer =
-            bingoGameApp.stage.getChildByName('ticketContainer');
+          const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
           shuffleTicketGrid(ticketContainer);
         } else {
           button.disabled = true;
@@ -483,7 +474,6 @@ export const setupBingo = async () => {
       resetTickets();
     } else {
       setTimeout(resetTickets, timeLeft);
-      3;
     }
   }
 
