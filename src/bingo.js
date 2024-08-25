@@ -1,6 +1,6 @@
 import { Application, Sprite, Assets, Container, Texture } from 'pixi.js';
 
-// Number of unique garden images
+// List of garden items used in the game
 const GARDEN_ITEMS = [
   'almond',
   'apple',
@@ -55,31 +55,29 @@ const GARDEN_ITEMS = [
   'watermelon',
 ];
 
-// Function to set up the game
+const MAX_DRAWS = 45;
+const TICKET_SIZE = 25;
+const FREE_STAR_INDEX = 12;
+const TICKET_RESET_TIME = 86400000; // 24 hours in milliseconds
+
 export const setupBingo = async () => {
   const gameContainer = document.getElementById('bingo-game');
 
-  // Create a PixiJS application
+  // Initialise the PIXI application
   const bingoGameApp = new Application();
 
-  // Init and configure application
   await bingoGameApp.init({
     background: '#fff',
     height: 400,
     width: 400,
   });
 
-  // Add canvas to the container
   gameContainer.appendChild(bingoGameApp.canvas);
 
-  // Load sound assets
+  // Load assets
   const checkSound = new Audio(require('./assets/sounds/check.mp3'));
   const winSound = new Audio(require('./assets/sounds/win.mp3'));
-
-  // Load the star image asset
   const starTexture = await Assets.load(require('./assets/img/star.svg'));
-
-  // Load all garden images
   const gardenTextures = await Promise.all(
     GARDEN_ITEMS.map((item) => Assets.load(require(`./assets/img/${item}.png`)))
   );
@@ -105,18 +103,18 @@ export const setupBingo = async () => {
   loadDraws();
   startResetTimer();
 
-  // Create empty ticket grid
+  // Create an empty ticket grid
   const createEmptyTicketGrid = () => {
     const ticketContainer = new Container();
-    ticketContainer.label = 'ticketContainer';
+    ticketContainer.name = 'ticketContainer';
 
-    for (let i = 0; i < 25; i++) {
-      const texture = i === 12 ? starTexture : Texture.WHITE;
+    for (let i = 0; i < TICKET_SIZE; i++) {
+      const texture = i === FREE_STAR_INDEX ? starTexture : Texture.WHITE;
       const sprite = new Sprite(texture);
       sprite.width = sprite.height = 70;
       sprite.x = (i % 5) * 80 + 5;
       sprite.y = Math.floor(i / 5) * 80 + 5;
-      sprite.tint = i !== 12 ? 0xcccccc : 0xffffff; // Grey color for empty spots
+      sprite.tint = i !== FREE_STAR_INDEX ? 0xcccccc : 0xffffff;
       ticketContainer.addChild(sprite);
     }
 
@@ -125,21 +123,21 @@ export const setupBingo = async () => {
 
   createEmptyTicketGrid();
 
-  // Generate a new bingo ticket
+  // Generate a new ticket with random items
   const generateTicket = () => {
     const items = [...GARDEN_ITEMS];
     const ticket = [];
 
-    while (ticket.length < 24) {
+    while (ticket.length < TICKET_SIZE - 1) {
       const randomIndex = Math.floor(Math.random() * items.length);
       ticket.push(items.splice(randomIndex, 1)[0]);
     }
 
-    ticket.splice(12, 0, 'free-star');
+    ticket.splice(FREE_STAR_INDEX, 0, 'free-star');
     return ticket;
   };
 
-  // Render ticket with images
+  // Render the ticket on the grid
   const renderTicket = (ticket) => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
@@ -154,7 +152,7 @@ export const setupBingo = async () => {
     });
   };
 
-  // Draw a random image
+  // Draw a new image and update the game state
   const drawImage = () => {
     drawCount++;
     saveDraws();
@@ -173,26 +171,26 @@ export const setupBingo = async () => {
 
     checkWinConditions();
 
-    if (drawCount >= 45) {
+    if (drawCount >= MAX_DRAWS) {
       alert('45 draws completed. Start a new game by dealing a new ticket.');
       resetTicket();
       button.innerText = 'Deal';
     }
 
-    drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
+    drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
   };
 
-  // Mark a matching item on the bingo ticket
+  // Mark a ticket item as drawn
   const markTicket = (index) => {
     checkSound.play();
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
     const sprite = ticketContainer.getChildAt(index);
     sprite.texture = starTexture;
-    sprite.tint = 0xff0000; // Change tint to red when marked
+    sprite.tint = 0xff0000;
   };
 
-  // Check for win conditions
+  // Check if the player has won
   const checkWinConditions = () => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
@@ -229,13 +227,11 @@ export const setupBingo = async () => {
     handleWin(wonLines, markedIndices);
   };
 
-  // Handle winning lines
+  // Handle win conditions and update the UI
   const handleWin = (wonLines, markedIndices) => {
     let winMessage = '';
 
-    // Check for one line win
     if (wonLines >= 1 && !oneLineWon) {
-      console.log('One Line condition met. Playing win sound.');
       document
         .getElementById('one-line')
         .classList.add('Leaderboard__item--won');
@@ -246,9 +242,7 @@ export const setupBingo = async () => {
       hasWon = true;
     }
 
-    // Check for two lines win
     if (wonLines >= 2 && !twoLinesWon) {
-      console.log('Two Lines condition met. Playing win sound.');
       document
         .getElementById('two-lines')
         .classList.add('Leaderboard__item--won');
@@ -259,22 +253,20 @@ export const setupBingo = async () => {
       hasWon = true;
     }
 
-    // Handle jackpot or full house
-    if (markedIndices.length === 25 && drawCount <= 35) {
+    if (markedIndices.length === TICKET_SIZE && drawCount <= 35) {
       handleFullHouse();
       handleJackpot();
-    } else if (markedIndices.length === 25 && !fullHouseWon) {
+    } else if (markedIndices.length === TICKET_SIZE && !fullHouseWon) {
       handleFullHouse();
     }
 
-    // No winning lines, check if the game should end
-    if (drawCount === 45 && tickets === 0 && wonLines < 1) {
+    if (drawCount === MAX_DRAWS && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
       resetGame();
     }
   };
 
-  // Highlight winning lines
+  // Highlight the winning lines on the ticket
   const highlightWinningLines = (ticketContainer, winningIndices) => {
     ticketContainer.children.forEach((sprite, index) => {
       sprite.tint = winningIndices.has(index)
@@ -285,9 +277,8 @@ export const setupBingo = async () => {
     });
   };
 
-  // Handle jackpot
+  // Handle jackpot win
   const handleJackpot = () => {
-    console.log('Jackpot condition met. Playing win sound.');
     document.getElementById('jackpot').classList.add('Leaderboard__item--won');
     promoText.innerText = 'Congratulations! You Won $100 Credit!';
     winSound.play();
@@ -295,10 +286,9 @@ export const setupBingo = async () => {
     hasWon = true;
   };
 
-  // Handle full house
+  // Handle full house win
   const handleFullHouse = () => {
     if (!fullHouseWon) {
-      console.log('Full House condition met. Playing win sound.');
       document
         .getElementById('full-house')
         .classList.add('Leaderboard__item--won');
@@ -309,7 +299,7 @@ export const setupBingo = async () => {
     }
   };
 
-  // Reset game after win or loss
+  // Reset the game state
   const resetGame = () => {
     setTimeout(() => {
       resetLeaderboard();
@@ -327,60 +317,71 @@ export const setupBingo = async () => {
     }, 500);
   };
 
-  // Function to reset the leaderboard
+  // Reset the leaderboard UI
   const resetLeaderboard = () => {
     document.querySelectorAll('.Leaderboard__item').forEach((item) => {
       item.classList.remove('Leaderboard__item--won');
     });
   };
 
-  // Reset the ticket to the default empty state
+  // Reset the ticket grid
   const resetTicket = () => {
     const ticketContainer =
       bingoGameApp.stage.getChildByName('ticketContainer');
     ticketContainer.children.forEach((sprite, index) => {
-      sprite.texture = index === 12 ? starTexture : Texture.WHITE;
-      sprite.tint = index !== 12 ? 0xcccccc : 0xffffff;
+      sprite.texture = index === FREE_STAR_INDEX ? starTexture : Texture.WHITE;
+      sprite.tint = index !== FREE_STAR_INDEX ? 0xcccccc : 0xffffff;
     });
-    hasWon = false; // Reset the win flag
+    hasWon = false;
   };
 
-  // Button click event
-  button.addEventListener('click', () => {
-    if (button.innerText === 'Deal') {
-      if (tickets > 0) {
-        resetLeaderboard();
-        currentTicket = generateTicket();
-        renderTicket(currentTicket);
-        drawCount = 0;
-        drawnImages = [];
-        saveDraws();
-        saveTickets(--tickets);
-        button.innerText = 'Play';
-        drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
-        promoText.innerText = '10 Free Tickets Daily!';
-      } else {
-        button.disabled = true;
-        button.innerText = 'Wait 24h';
-      }
-    } else if (button.innerText === 'Play') {
-      if (drawCount < 45) {
-        drawImage();
-      } else {
-        alert('Maximum 45 draws reached. Start a new game.');
-        button.innerText = 'Deal';
-      }
-    }
-  });
+  // Debounce function to limit the rate of function calls
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  };
 
-  // Load tickets from local storage
+  // Button click event handler
+  button.addEventListener(
+    'click',
+    debounce(() => {
+      if (button.innerText === 'Deal') {
+        if (tickets > 0) {
+          resetLeaderboard();
+          currentTicket = generateTicket();
+          renderTicket(currentTicket);
+          drawCount = 0;
+          drawnImages = [];
+          saveDraws();
+          saveTickets(--tickets);
+          button.innerText = 'Play';
+          drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
+          promoText.innerText = '10 Free Tickets Daily!';
+        } else {
+          button.disabled = true;
+          button.innerText = 'Wait 24h';
+        }
+      } else if (button.innerText === 'Play') {
+        if (drawCount < MAX_DRAWS) {
+          drawImage();
+        } else {
+          alert('Maximum 45 draws reached. Start a new game.');
+          button.innerText = 'Deal';
+        }
+      }
+    }, 300)
+  );
+
+  // Load the number of tickets from local storage
   function loadTickets() {
     const now = Date.now();
     const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
     let tickets = parseInt(localStorage.getItem('bingo-tickets'), 10);
 
-    if (!lastReset || now - lastReset >= 86400000) {
-      // 24 hours have passed, reset tickets
+    if (!lastReset || now - lastReset >= TICKET_RESET_TIME) {
       tickets = 10;
       localStorage.setItem('bingo-last-reset', now);
       localStorage.setItem('bingo-tickets', tickets);
@@ -394,40 +395,41 @@ export const setupBingo = async () => {
     return tickets;
   }
 
-  // Save tickets to local storage
+  // Save the number of tickets to local storage
   function saveTickets(newTickets) {
     localStorage.setItem('bingo-tickets', newTickets);
     ticketsDisplay.innerText = `Your Tickets: ${newTickets}`;
   }
 
-  // Load draw count from local storage
+  // Load the number of draws from local storage
   function loadDraws() {
     drawCount = parseInt(localStorage.getItem('bingo-draws'), 10) || 0;
-    drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
+    drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
   }
 
-  // Save draw count to local storage
+  // Save the number of draws to local storage
   function saveDraws() {
     localStorage.setItem('bingo-draws', drawCount);
-    drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
+    drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
   }
 
-  // Timer reset for daily tickets
+  // Start the timer to reset tickets
   function startResetTimer() {
     const now = Date.now();
     const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
 
     const timeLeft = lastReset
-      ? Math.max(0, 86400000 - (now - lastReset))
-      : 86400000;
+      ? Math.max(0, TICKET_RESET_TIME - (now - lastReset))
+      : TICKET_RESET_TIME;
 
     if (timeLeft === 0) {
       resetTickets();
     } else {
-      setTimeout(resetTickets, timeLeft);
+      setTimeout(resetTickets, timeLeft);3
     }
   }
 
+  // Reset the number of tickets
   function resetTickets() {
     localStorage.setItem('bingo-tickets', '10');
     localStorage.setItem('bingo-last-reset', Date.now());
