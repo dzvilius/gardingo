@@ -55,6 +55,7 @@ const GARDEN_ITEMS = [
   'watermelon',
 ];
 
+const FREE_TICKETS = 10;
 const MAX_DRAWS = 45;
 const TICKET_SIZE = 25;
 const FREE_STAR_INDEX = 12;
@@ -90,7 +91,6 @@ export const setupBingo = async () => {
   let drawnImages = [];
   let drawCount = 0;
   let tickets = loadTickets();
-  let hasWon = false;
   let oneLineWon = false;
   let twoLinesWon = false;
   let fullHouseWon = false;
@@ -101,6 +101,7 @@ export const setupBingo = async () => {
   // DOM elements
   const gameImage = document.getElementById('game-image');
   const promoText = document.getElementById('game-promo');
+  promoText.innerText = "10 Free Tickets Daily!";
   const ticketsDisplay = document.getElementById('game-tickets');
   const drawsDisplay = document.getElementById('game-draws');
   const button = document.querySelector('.GameFooter__action .button');
@@ -247,7 +248,6 @@ export const setupBingo = async () => {
       promoText.classList.add('GamePromo__text--win');
       winSound.play();
       oneLineWon = true;
-      hasWon = true;
     }
 
     if (wonLines >= 2 && !twoLinesWon) {
@@ -261,7 +261,6 @@ export const setupBingo = async () => {
       promoText.classList.add('GamePromo__text--win');
       winSound.play();
       twoLinesWon = true;
-      hasWon = true;
     }
 
     if (markedIndices.length === TICKET_SIZE && drawCount <= 35) {
@@ -297,7 +296,6 @@ export const setupBingo = async () => {
     promoText.classList.add('GamePromo__text--win');
     winSound.play();
     fullHouseWon = true;
-    hasWon = true;
   };
 
   // Handle full house win
@@ -310,7 +308,6 @@ export const setupBingo = async () => {
       promoText.classList.add('GamePromo__text--win');
       winSound.play();
       fullHouseWon = true;
-      hasWon = true;
     }
   };
 
@@ -327,7 +324,6 @@ export const setupBingo = async () => {
       oneLineWon = false;
       twoLinesWon = false;
       fullHouseWon = false;
-      hasWon = false;
       location.reload();
     }, 500);
   };
@@ -346,7 +342,6 @@ export const setupBingo = async () => {
       sprite.texture = index === FREE_STAR_INDEX ? starTexture : Texture.WHITE;
       sprite.tint = index !== FREE_STAR_INDEX ? 0xcccccc : 0xffffff;
     });
-    hasWon = false;
   };
 
   // Debounce function to limit the rate of function calls
@@ -412,7 +407,7 @@ export const setupBingo = async () => {
           saveTickets(--tickets);
           button.innerText = 'Play';
           drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
-          promoText.innerText = '10 Free Tickets Daily!';
+          promoText.innerText = `${FREE_TICKETS} Free Tickets Daily!`;
           dealSound.play();
 
           const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
@@ -423,11 +418,11 @@ export const setupBingo = async () => {
         }
       } else if (button.innerText === 'Play') {
         if (drawCount < MAX_DRAWS) {
-          button.disabled = true; // Disable button at the start of the draw
+          button.disabled = true;
           shuffleGameImage();
           setTimeout(() => {
             drawImage();
-            button.disabled = false; // Enable button after the draw is complete
+            button.disabled = false;
           }, 500);
           playSound.play();
         }
@@ -440,7 +435,7 @@ export const setupBingo = async () => {
         saveTickets(--tickets);
         button.innerText = 'Play';
         drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
-        promoText.innerText = '10 Free Tickets Daily!';
+        promoText.innerText = `${FREE_TICKETS} Free Tickets Daily!`;
         dealSound.play();
 
         const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
@@ -452,17 +447,17 @@ export const setupBingo = async () => {
   // Load the number of tickets from local storage
   function loadTickets() {
     const now = Date.now();
-    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
-    let tickets = parseInt(localStorage.getItem('bingo-tickets'), 10);
+    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), FREE_TICKETS);
+    let tickets = parseInt(localStorage.getItem('bingo-tickets'), FREE_TICKETS);
 
     if (!lastReset || now - lastReset >= TICKET_RESET_TIME) {
-      tickets = 10;
+      tickets = FREE_TICKETS;
       localStorage.setItem('bingo-last-reset', now);
       localStorage.setItem('bingo-tickets', tickets);
     }
 
     if (isNaN(tickets)) {
-      tickets = 10;
+      tickets = FREE_TICKETS;
       localStorage.setItem('bingo-tickets', tickets);
     }
 
@@ -477,7 +472,7 @@ export const setupBingo = async () => {
 
   // Load the number of draws from local storage
   function loadDraws() {
-    drawCount = parseInt(localStorage.getItem('bingo-draws'), 10) || 0;
+    drawCount = parseInt(localStorage.getItem('bingo-draws'), FREE_TICKETS) || 0;
     drawsDisplay.innerText = `Draws: ${drawCount} of ${MAX_DRAWS}`;
   }
 
@@ -490,7 +485,7 @@ export const setupBingo = async () => {
   // Start the timer to reset tickets
   function startResetTimer() {
     const now = Date.now();
-    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), 10);
+    const lastReset = parseInt(localStorage.getItem('bingo-last-reset'), FREE_TICKETS);
 
     const timeLeft = lastReset
       ? Math.max(0, TICKET_RESET_TIME - (now - lastReset))
@@ -505,9 +500,9 @@ export const setupBingo = async () => {
 
   // Reset the number of tickets
   function resetTickets() {
-    localStorage.setItem('bingo-tickets', '10');
+    localStorage.setItem('bingo-tickets', FREE_TICKETS);
     localStorage.setItem('bingo-last-reset', Date.now());
-    tickets = 10;
+    tickets = FREE_TICKETS;
     ticketsDisplay.innerText = `Your Tickets: ${tickets}`;
     button.disabled = false;
     button.innerText = 'New Game';
