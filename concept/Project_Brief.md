@@ -11,8 +11,8 @@ The client, a local supplier of vegetables and fruits, seeks a gamification solu
 - Responsive and mobile-friendly web-based game
 - 10 free daily tickets based on the browser's local storage
 - 51 unique garden items
-- 41 draws per game
-- Win one line, two lines, full house, or jackpot by draw 31
+- 45 draws per game
+- Win one line, two lines, full house, or jackpot by draw 35
 - Disable the game with a 24-hour timer after all tickets are used
 - After the user wins credits, they should be able to use them towards a premium subscription
 - 100% random draws with a high win probability

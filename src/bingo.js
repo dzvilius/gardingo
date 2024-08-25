@@ -173,13 +173,13 @@ export const setupBingo = async () => {
 
     checkWinConditions();
 
-    if (drawCount >= 41) {
-      alert('41 draws completed. Start a new game by dealing a new ticket.');
+    if (drawCount >= 45) {
+      alert('45 draws completed. Start a new game by dealing a new ticket.');
       resetTicket();
       button.innerText = 'Deal';
     }
 
-    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+    drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
   };
 
   // Mark a matching item on the bingo ticket
@@ -260,14 +260,15 @@ export const setupBingo = async () => {
     }
 
     // Handle jackpot or full house
-    if (wonLines === 2 && markedIndices.length === 25 && drawCount <= 31 && !fullHouseWon) {
+    if (markedIndices.length === 25 && drawCount <= 35) {
+      handleFullHouse();
       handleJackpot();
-    } else if (wonLines === 2 && markedIndices.length === 25 && !fullHouseWon) {
+    } else if (markedIndices.length === 25 && !fullHouseWon) {
       handleFullHouse();
     }
 
     // No winning lines, check if the game should end
-    if (drawCount === 41 && tickets === 0 && wonLines < 1) {
+    if (drawCount === 45 && tickets === 0 && wonLines < 1) {
       promoText.innerText = 'Better Luck Next Time!';
       resetGame();
     }
@@ -286,17 +287,12 @@ export const setupBingo = async () => {
 
   // Handle jackpot
   const handleJackpot = () => {
-    if (!fullHouseWon) {
-      console.log('Jackpot condition met. Playing win sound.');
-      document
-        .getElementById('jackpot')
-        .classList.add('Leaderboard__item--won');
-      promoText.innerText = 'Congratulations! You Won $100 Credit!';
-      winSound.play();
-      fullHouseWon = true;
-      hasWon = true;
-    }
-    resetGame();
+    console.log('Jackpot condition met. Playing win sound.');
+    document.getElementById('jackpot').classList.add('Leaderboard__item--won');
+    promoText.innerText = 'Congratulations! You Won $100 Credit!';
+    winSound.play();
+    fullHouseWon = true;
+    hasWon = true;
   };
 
   // Handle full house
@@ -311,7 +307,6 @@ export const setupBingo = async () => {
       fullHouseWon = true;
       hasWon = true;
     }
-    resetGame();
   };
 
   // Reset game after win or loss
@@ -362,17 +357,17 @@ export const setupBingo = async () => {
         saveDraws();
         saveTickets(--tickets);
         button.innerText = 'Play';
-        drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+        drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
         promoText.innerText = '10 Free Tickets Daily!';
       } else {
         button.disabled = true;
         button.innerText = 'Wait 24h';
       }
     } else if (button.innerText === 'Play') {
-      if (drawCount < 41) {
+      if (drawCount < 45) {
         drawImage();
       } else {
-        alert('Maximum 41 draws reached. Start a new game.');
+        alert('Maximum 45 draws reached. Start a new game.');
         button.innerText = 'Deal';
       }
     }
@@ -408,13 +403,13 @@ export const setupBingo = async () => {
   // Load draw count from local storage
   function loadDraws() {
     drawCount = parseInt(localStorage.getItem('bingo-draws'), 10) || 0;
-    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+    drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
   }
 
   // Save draw count to local storage
   function saveDraws() {
     localStorage.setItem('bingo-draws', drawCount);
-    drawsDisplay.innerText = `Draws: ${drawCount} of 41`;
+    drawsDisplay.innerText = `Draws: ${drawCount} of 45`;
   }
 
   // Timer reset for daily tickets
