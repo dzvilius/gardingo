@@ -423,8 +423,12 @@ export const setupBingo = async () => {
         }
       } else if (button.innerText === 'Play') {
         if (drawCount < MAX_DRAWS) {
+          button.disabled = true; // Disable button at the start of the draw
           shuffleGameImage();
-          setTimeout(drawImage, 500);
+          setTimeout(() => {
+            drawImage();
+            button.disabled = false; // Enable button after the draw is complete
+          }, 500);
           playSound.play();
         }
       } else if (button.innerText === 'New Game') {
