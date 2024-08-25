@@ -55,8 +55,8 @@ const GARDEN_ITEMS = [
   'watermelon',
 ];
 
-const FREE_TICKETS = 10;
-const MAX_DRAWS = 46;
+const FREE_TICKETS = 1;
+const MAX_DRAWS = 6;
 const TICKET_SIZE = 25;
 const FREE_STAR_INDEX = 12;
 const TICKET_RESET_TIME = 86400000; // 24 hours in milliseconds
@@ -85,7 +85,10 @@ export const setupBingo = async () => {
   createEmptyTicketGrid(bingoGameApp, assets.starTexture);
   setupButtonHandler(bingoGameApp, assets, gameState, domElements);
 
-  startResetTimer(gameState, domElements);
+  // Only start the reset timer if tickets are exhausted
+  if (gameState.tickets === 0) {
+    startResetTimer(gameState, domElements);
+  }
 };
 
 // Load game assets (sounds and images)
@@ -198,7 +201,10 @@ const startNewGame = (bingoGameApp, assets, gameState, domElements) => {
     );
   } else {
     domElements.button.disabled = true;
-    domElements.button.innerText = 'Wait 24h';
+    if (!localStorage.getItem('bingo-last-reset')) {
+      localStorage.setItem('bingo-last-reset', Date.now());
+    }
+    startResetTimer(gameState, domElements);
   }
 };
 
@@ -292,11 +298,25 @@ const checkWinConditions = (bingoGameApp, assets, gameState, domElements) => {
   });
 
   highlightWinningLines(ticketContainer, winningIndices);
-  handleWin(assets, gameState, domElements, wonLines, markedIndices);
+  handleWin(
+    bingoGameApp,
+    assets,
+    gameState,
+    domElements,
+    wonLines,
+    markedIndices
+  );
 };
 
 // Handle win conditions
-const handleWin = (assets, gameState, domElements, wonLines, markedIndices) => {
+const handleWin = (
+  bingoGameApp,
+  assets,
+  gameState,
+  domElements,
+  wonLines,
+  markedIndices
+) => {
   let winMessage = '';
 
   if (wonLines >= 1 && !gameState.oneLineWon) {
@@ -328,7 +348,7 @@ const handleWin = (assets, gameState, domElements, wonLines, markedIndices) => {
     wonLines < 1
   ) {
     domElements.promoText.innerText = 'Better Luck Next Time!';
-    resetGame(gameState, domElements);
+    resetGame(gameState, domElements, bingoGameApp);
   }
 };
 
@@ -375,10 +395,10 @@ const handleFullHouse = (assets, gameState, domElements) => {
 };
 
 // Reset the game
-const resetGame = (gameState, domElements) => {
+const resetGame = (gameState, domElements, bingoGameApp) => {
   setTimeout(() => {
     resetLeaderboard();
-    resetTicket(gameState, domElements);
+    resetTicket(bingoGameApp, gameState, domElements);
     gameState.tickets = 0;
     saveTickets(0, domElements);
     gameState.drawCount = 0;
@@ -388,7 +408,7 @@ const resetGame = (gameState, domElements) => {
     gameState.twoLinesWon = false;
     gameState.fullHouseWon = false;
     location.reload();
-  }, 500);
+  }, 60000);
 };
 
 // Reset the leaderboard
@@ -399,7 +419,7 @@ const resetLeaderboard = () => {
 };
 
 // Reset the ticket grid
-const resetTicket = (gameState, domElements) => {
+const resetTicket = (bingoGameApp, gameState, domElements) => {
   const ticketContainer = bingoGameApp.stage.getChildByName('ticketContainer');
   ticketContainer.children.forEach((sprite, index) => {
     sprite.texture =
@@ -525,8 +545,29 @@ const startResetTimer = (gameState, domElements) => {
   if (timeLeft === 0) {
     resetTickets(gameState, domElements);
   } else {
-    setTimeout(() => resetTickets(gameState, domElements), timeLeft);
+    updateCountdownDisplay(timeLeft, domElements);
+    const countdownInterval = setInterval(() => {
+      const newTimeLeft = Math.max(0, timeLeft - (Date.now() - now));
+      updateCountdownDisplay(newTimeLeft, domElements);
+      if (newTimeLeft <= 0) {
+        clearInterval(countdownInterval);
+        resetTickets(gameState, domElements);
+      }
+    }, 1000);
   }
+};
+
+// Update the countdown display
+const updateCountdownDisplay = (timeLeft, domElements) => {
+  const hours = Math.floor(timeLeft / 3600000);
+  const minutes = Math.floor((timeLeft % 3600000) / 60000);
+  const seconds = Math.floor((timeLeft % 60000) / 1000);
+  domElements.button.disabled = true;
+  domElements.button.innerText = `Wait: ${hours
+    .toString()
+    .padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds
+    .toString()
+    .padStart(2, '0')}`;
 };
 
 // Reset tickets
