@@ -398,6 +398,12 @@ export const setupBingo = async () => {
     'click',
     debounce(() => {
       if (button.innerText === 'New Game') {
+        oneLineWon = false;
+        twoLinesWon = false;
+        fullHouseWon = false;
+
+        promoText.classList.remove('GamePromo__text--win');
+
         if (tickets > 0) {
           resetLeaderboard();
           currentTicket = generateTicket();
