@@ -56,11 +56,11 @@ const GARDEN_ITEMS = [
 ];
 
 const FREE_TICKETS = 10;
-const MAX_DRAWS = 45;
+const MAX_DRAWS = 46;
 const TICKET_SIZE = 25;
 const FREE_STAR_INDEX = 12;
 const TICKET_RESET_TIME = 86400000; // 24 hours in milliseconds
-const JACKPOT_THRESHOLD = 35;
+const JACKPOT_THRESHOLD = 40;
 
 // Main function to setup the Bingo game
 export const setupBingo = async () => {
