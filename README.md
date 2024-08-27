@@ -4,6 +4,13 @@ Bingo game featuring Fruits, Vegetables, Berries, and Nuts.
 
 Receive 10 free tickets daily, with a chance to win a $100 credits jackpot!
 
+## Game Probabilities
+
+* 1 Line: ~95%
+* Two Lines: ~70%
+* Full House: ~30%
+* Jackpot (Full House by draw 40): ~5%
+
 Please read the [Project Brief](concept/Project_Brief.md) document to learn more about the client and project requirements.
 
 [Live Preview](https://gardingo.pages.dev/)
